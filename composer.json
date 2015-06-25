@@ -1,0 +1,30 @@
+{
+    "name": "silverstripe-checkfront",
+    "type": "silverstripe-module",
+    "description": "Checkfront Integration for SilverStripe",
+    "homepage": "http://github.com/crackerjackdigital/silverstripe-checkfront",
+    "license": "BSD-3-Clause",
+    "keywords": ["silverstripe", "checkfront", "booking"],
+    "authors": [
+        {
+            "name": "Steve Wake",
+            "homepage": "https://github.com/wakes"
+        },
+        {
+            "name": "CrackerJack Digital",
+            "homepage": "http://www.crackerjack.net.nz/"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2",
+        "composer/installers": "*",
+        "silverstripe/framework": "3.1.*",
+        "silverstripe/cms": "3.1.*",
+        "ivaynberg/select2": "4.*",
+        "checkfront/checkfront": "3.0"
+    },
+    "extra": {
+        "installer-name": "checkfront"
+    },
+    "minimum-stability": "dev"
+}

@@ -1,0 +1,9 @@
+digraph "/Library/WebServer/sites/crackerjack/soc/htdocs/checkfront/code/controllers" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_050edd66366d13764f98250ef6db77f6 {
+    graph [ bgcolor="#ddddee", pencolor="black", label="code" fontname="Helvetica", fontsize="10", URL="dir_050edd66366d13764f98250ef6db77f6.html"]
+  dir_b3ce625166778922d9578dc2c63562b9 [shape=box, label="controllers", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_b3ce625166778922d9578dc2c63562b9.html"];
+  }
+}

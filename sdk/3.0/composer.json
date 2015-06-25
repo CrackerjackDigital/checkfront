@@ -1,0 +1,23 @@
+{
+    "name" : "checkfront/checkfront",
+    "description" : "Wrapper library for using the Checkfront API",
+    "version": "3.0.0",
+    "homepage" : "https://github.com/htmlgraphic/PHP-SDK",
+    "license" : "MIT",
+    "keywords": ["checkfront", "bookings", "travel", "check", "front"],
+    "authors" : [
+        {
+            "name" : "Jason Gegere",
+            "email" : "jason@htmlgraphic.com",
+            "homepage" : "http://htmlgraphic.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3"
+        },
+    "autoload": {
+        "psr-0": {
+            "Checkfront": "lib/"
+            }
+        }
+}

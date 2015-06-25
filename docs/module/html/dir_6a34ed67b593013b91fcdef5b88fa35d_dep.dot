@@ -1,0 +1,13 @@
+digraph "/Library/WebServer/sites/crackerjack/soc/htdocs/checkfront/code/api" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_050edd66366d13764f98250ef6db77f6 {
+    graph [ bgcolor="#ddddee", pencolor="black", label="code" fontname="Helvetica", fontsize="10", URL="dir_050edd66366d13764f98250ef6db77f6.html"]
+  subgraph clusterdir_6a34ed67b593013b91fcdef5b88fa35d {
+    graph [ bgcolor="#eeeeff", pencolor="black", label="" URL="dir_6a34ed67b593013b91fcdef5b88fa35d.html"];
+    dir_6a34ed67b593013b91fcdef5b88fa35d [shape=plaintext label="api"];
+    dir_dbd5ff494cccac766ae1a323c1f69b3a [shape=box label="3.0" color="black" fillcolor="white" style="filled" URL="dir_dbd5ff494cccac766ae1a323c1f69b3a.html"];
+  }
+  }
+}

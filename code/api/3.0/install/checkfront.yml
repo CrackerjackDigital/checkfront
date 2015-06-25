@@ -1,0 +1,26 @@
+---
+Name: checkfront-module-config
+# Copy to your app config directory and specialise as required. This is a 3.0 version file.
+---
+CheckfrontAPIConfig:
+  host: 'accountname.checkfront.com'
+  account_id: 'off'   # off|on see checkfront docs, generally 'off' I believe
+#  client_ip: ''       # see checkfront docs
+
+CheckfrontAPITokenAuthenticator:
+  api_key: '' # api key from checkfront admin interface
+  api_secret: '' # api secret from checkfront admin interface
+
+CheckfrontModule:
+  crypto_link_salt: 'asdkas;ldk;laskd;kasd;asdk;;kasdk;'  # this must be set for link generator/links to work, something long and random
+  package_category_id: 6    # set to the id for 'packages' category in checkfront
+
+#CheckfrontAPIFacade:     # add extensions we will be using in this app to call API with
+#  extensions:
+#    - CheckfrontAPIItemsEndpoint
+#    - CheckfrontAPIPackagesEndpoint
+#    - CheckfrontAPIBookingFormEndpoint
+#    - CheckfrontAPIBookingEndpoint
+
+# CheckfrontAPIPackages:
+#  package_category_id: 5

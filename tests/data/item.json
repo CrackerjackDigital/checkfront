@@ -1,0 +1,48 @@
+{"version": "3.0", "account_id": 1, "host_id": "compassion.checkfront.com", "name": "Crackerjack Digital", "locale": {
+	"id": "en_NZ",
+	"lang": "en",
+	"currency": "NZD"
+}, "request": {
+	"status": "OK",
+	"resource": "item",
+	"id": "1",
+	"method": "get",
+	"records": 0,
+	"limit": 0,
+	"page": 1,
+	"pages": 1,
+	"time": 0.001
+}, "query": false, "item": {
+	"unit": "D",
+	"item_id": 1,
+	"sku": "sample",
+	"url": "http:\/\/www.compassion.org.nz",
+	"lock": 1,
+	"visibility": "*",
+	"name": "Sample Item",
+	"pos": 0,
+	"summary": "This is a sample of a Checkfront inventory item. You can delete this item via in your inventory management, or reset all of your data under your system setup.",
+	"details": "",
+	"meta": "{\"item_package_rate\":\"\"}",
+	"unlimited": "",
+	"video": {
+		"id": "Gve34QSLVLY",
+		"start": 0
+	},
+	"image": {
+		"1": {
+			"date": "1429060277",
+			"x1": 10,
+			"x2": 90,
+			"y1": 10,
+			"y2": 70,
+			"title": "Smart Simplifed Online Bookings",
+			"src": "1-1--1429060277",
+			"src@2x": "1-1@2x--1429060277"
+		}
+	},
+	"category_id": 1,
+	"rated": 1,
+	"product_group_type": "",
+	"product_group_children": ""
+}}

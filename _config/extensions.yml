@@ -1,0 +1,6 @@
+---
+Name: checkfront-module-extensions
+---
+Member:
+  extensions:
+    - CheckfrontMemberExtension

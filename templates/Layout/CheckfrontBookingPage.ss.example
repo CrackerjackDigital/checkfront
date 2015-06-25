@@ -1,0 +1,4 @@
+<div class="booking-page">
+	<h1>Booking page</h1>
+	<% include CheckfrontPackageBookingForm %>
+</div>

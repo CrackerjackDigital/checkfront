@@ -1,0 +1,9 @@
+en:
+  CheckfrontLinkGeneratorForm:
+    PackageIDFieldLabel: 'Package'
+    PackageIDEmptyString: 'Select a package'
+    StartDateFieldLabel: 'Start date'
+    EndDateFieldLabel: 'End date'
+    AccessKeyFieldLabel: 'Access key'
+    TypeFieldLabel: 'Package type'
+    GenerateButtonText: 'Generate'

@@ -1,0 +1,16 @@
+Injector:
+  CheckfrontAPI:
+    class: CheckfrontAPIFacade
+    properties:
+      implementation: %$CheckfrontAPIImplementation
+  CheckfrontAPIImplementation:
+    factory: CheckfrontAPIImplementationFactory
+  CheckfrontConfig: CheckfrontAPIConfig
+  CheckfrontAuthenticator: CheckfrontAPITokenAuthenticator
+  CheckfrontResponse: CheckfrontAPIResponse
+  CheckfrontErrorResponse: CheckfrontAPIErrorResponse
+  CheckfrontFormResponse: CheckfrontAPIFormResponse
+  CheckfrontPackageResponse: CheckfrontAPIPackageResponse
+  CheckfrontAuthenticator: CheckfrontAPITokenAuthenticator    # default
+  CheckfrontCache: CheckfrontCacheNull
+  CheckfrontSession: CheckfrontSession

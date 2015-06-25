@@ -1,0 +1,5 @@
+<map id="CheckfrontModel" name="CheckfrontModel">
+<area shape="rect" id="node3" href="$class_checkfront_bookable_item_model.html" title="CheckfrontBookableItemModel" alt="" coords="5,155,205,181"/>
+<area shape="rect" id="node4" href="$class_checkfront_booking_model.html" title="CheckfrontBookingModel" alt="" coords="231,155,399,181"/>
+<area shape="rect" id="node5" href="$class_checkfront_rated_item_model.html" title="CheckfrontRatedItemModel" alt="" coords="423,155,605,181"/>
+</map>

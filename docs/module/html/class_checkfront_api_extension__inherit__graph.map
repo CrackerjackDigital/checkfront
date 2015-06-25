@@ -1,0 +1,6 @@
+<map id="CheckfrontApiExtension" name="CheckfrontApiExtension">
+<area shape="rect" id="node3" href="$class_booking_form_api.html" title="BookingFormApi" alt="" coords="5,155,123,181"/>
+<area shape="rect" id="node4" href="$class_checkfront_booking_api.html" title="CheckfrontBookingApi" alt="" coords="148,155,300,181"/>
+<area shape="rect" id="node5" href="$class_checkfront_items_api.html" title="CheckfrontItemsApi" alt="" coords="324,155,463,181"/>
+<area shape="rect" id="node6" href="$class_checkfront_package_api.html" title="CheckfrontPackageApi" alt="" coords="487,155,643,181"/>
+</map>

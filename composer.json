@@ -2,7 +2,7 @@
     "name": "silverstripe-checkfront",
     "type": "silverstripe-module",
     "description": "Checkfront Integration for SilverStripe",
-    "homepage": "http://github.com/crackerjackdigital/silverstripe-checkfront",
+    "homepage": "http://www.crackerjack.net.nz/"
     "license": "BSD-3-Clause",
     "keywords": ["silverstripe", "checkfront", "booking"],
     "authors": [

@@ -160,4 +160,21 @@ class CheckfrontAPIResponse extends Object
             return isset($this['request']['records']) ? $this['request']['records'] : null;
         }
     }
+
+    /**
+     * Lookup 'manually' configured config setting optionally with key lookup if it's an array. We need to
+     * do this because Response classes are versioned so outside of normal SilverStripe config mechanism.
+     *
+     * @param $name
+     * @param null|string $key
+     *
+     * @return array|scalar
+     */
+    protected static function get_config_setting($name, $key = null) {
+        $value = Config::inst()->get(get_called_class(), $name);
+        if ($key && $value && is_array($value) && array_key_exists($key, $value)) {
+            return $value[$key];
+        }
+        return $value;
+    }
 }

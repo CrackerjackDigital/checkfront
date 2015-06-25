@@ -54,7 +54,7 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
         $params = self::request_params(
             __FUNCTION__,
             array(
-                'category_id' => static::get_config_setting('package_category_id'),
+                'category_id' => CheckfrontModule::package_category_id()
             ),
             $this->buildDates($startDate, $endDate),
             $filters

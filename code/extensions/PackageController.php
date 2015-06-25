@@ -1,23 +1,28 @@
 <?php
 
 /**
- * A package oriented controller, expects an item ID on the incoming request which points to a Package in Checkfront.
+ * A package oriented controller extension which can be added to a Page_Controller to provide
+ * checkfont package booking functionality.
+ *
+ * Expects an item ID on the incoming request which points to a Package in Checkfront. Uses http request
+ * mode GET/POST to figure out what action to perform.
  */
 class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension {
     const FormName = 'CheckfrontBookingForm';
     const PackageSessionKey = 'package';
     const PackageIDKey = 'package-id';
     const FormSessionKey = 'form';
-
-    const IDParam = 'CheckfrontID';     // NB keep in sync with the url_handlers.
+    const TokenParam = 'Token';     // NB keep in sync with the url_handlers.
 
     private static $url_handlers = array(
-        'GET $CheckfrontID!' => 'package',
-        'POST $CheckfrontID!' => 'book',
+        'token' => 'gettoken',
+        'GET $Token!' => 'package',
+        'POST $Token!' => 'book'
     );
     private static $allowed_actions = array(
         'package' => true,
-        'book' => true
+        'book' => true,
+        'token' => true
     );
     private static $form_name = self::FormName;
 
@@ -29,9 +34,18 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         return parent::api();
     }
 
+    public function index(SS_HTTPRequest $request) {
+        // TODO: handle what happens if no Token passed.
+        return array();
+    }
+
+    public function gettoken(SS_HTTPRequest $request) {
+        xdebug_break();
+    }
+
     /**
      * Check if we already have a checkfront session. If not then create one with the package
-     * identified on the request url as CheckfrontID. The existance of the session implies the package
+     * identified on the request url as Token. The existance of the session implies the package
      * has already been added so doesn't re-add.
      */
     public function package(SS_HTTPRequest $request) {
@@ -48,7 +62,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             // no session, try fetch package again and store in session
             $session->clearData(self::PackageSessionKey);
 
-            $packageID = $this->CheckfrontID();
+            $packageID = $this->CheckfrontItemID();
 
             if ($packageID) {
 
@@ -125,7 +139,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                         );
                         $formAction = Controller::join_links(
                             $this->owner->Link(),
-                            $this->CheckfrontID()
+                            $this->CheckfrontItemID()
                         );
                         $form->setFormAction(substr($formAction, 1));
                         // TODO: form caching
@@ -137,8 +151,20 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         return $form;
     }
 
-    public function CheckfrontID() {
-        return $this->owner->getRequest()->param(self::IDParam);
+    /**
+     * Return the ItemID from the passed encrypted token.
+     *
+     * @return array|null
+     */
+    public function CheckfrontItemID() {
+        $accessKey = $this->owner->getRequest()->param(self::TokenParam);
+        if (!$accessKey) {
+            return $this->owner->redirect('auth');
+        }
+        return CheckfrontModule::decode_link_segment(
+            $accessKey,
+            CheckfrontModule::TokenItemIDIndex
+        );
     }
 
     public function CheckfrontPackage() {
@@ -148,13 +174,17 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     /**
      * -    setup session in checkfront
      * -    add package to session
-     * -    return booking form for package
+     * -    add items to session
+     * -    call the 'book' endpoint to make the booking
      *
      * @param SS_HTTPRequest $request
      * @return CheckfrontForm
      */
     public function book(SS_HTTPRequest $request) {
         // only post request should route here
+
+        $packageID = $this->CheckfrontItemID();
+
         if ($request->isPOST()) {
             $postVars = $request->postVars();
 
@@ -162,7 +192,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             $endDate = $request->postVar('EndDate');
 
             $ratedPackageResponse = $this->api()->fetchPackage(
-                $this->CheckfrontID(),
+                $packageID,
                 $startDate,
                 $endDate
             );
@@ -212,7 +242,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     public function getBookingLink() {
         return Controller::join_links(
             'book',
-            $this->CheckfrontID(),
+            $this->CheckfrontItemID(),
             'book'
         );
     }

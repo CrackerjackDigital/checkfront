@@ -8,19 +8,18 @@ CheckfrontAPIConfig:
 #  client_ip: ''       # see checkfront docs
 
 CheckfrontAPITokenAuthenticator:
-  api_key: '' # api key from checkfront admin interface
-  api_secret: '' # api secret from checkfront admin interface
+  api_key: ''         # api key from checkfront admin interface
+  api_secret: ''      # api secret from checkfront admin interface
 
 CheckfrontModule:
   crypto_link_salt: 'asdkas;ldk;laskd;kasd;asdk;;kasdk;'  # this must be set for link generator/links to work, something long and random
   package_category_id: 6    # set to the id for 'packages' category in checkfront
+  public_end_point: ''      # what is the booking page link?
 
-#CheckfrontAPIFacade:     # add extensions we will be using in this app to call API with
+#CheckfrontAPIFacade:        # add extensions we will be using in this app to call API with
 #  extensions:
 #    - CheckfrontAPIItemsEndpoint
 #    - CheckfrontAPIPackagesEndpoint
 #    - CheckfrontAPIBookingFormEndpoint
 #    - CheckfrontAPIBookingEndpoint
 
-# CheckfrontAPIPackages:
-#  package_category_id: 5

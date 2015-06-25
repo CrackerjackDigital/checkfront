@@ -3,3 +3,6 @@ Name: checkfront-config
 ---
 CheckfrontModule:
   module_path: 'checkfront'
+
+CheckfrontAPIPackageResponse:
+  package_items_path: 'item.product_group_children';

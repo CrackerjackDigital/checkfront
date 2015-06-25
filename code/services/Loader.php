@@ -5,18 +5,21 @@
 class CheckfrontLoader extends Object {
     private static $version;
 
-    // path to the Checkfront provided sdk library files, this is to the composer installed version
-    private static $sdk_path = '/vendor/checkfront/checkfront/lib';
-    // use the built-in version instead, swap with above line
-//     private static $sdk_path = 'sdk/{version}/lib';
+    // path to the Checkfront provided sdk library files. Will load files from subdirectories too
+    // (only files ending in '.php' are loaded). Files found here are loaded upfront as forward declarations for
+    // other files which may rely on them.
+    // NB: by default we use the composer installed version, to use the supplied version(s) use 'sdk/{version}/lib/'
+    private static $sdk_path = '/vendor/checkfront/checkfront/lib/';
 
-    // path to our implementation of their API, version should match the version in composer
+    // path to our implementation of their API, version should match the version in composer and Implementation, will
+    // check subdirectories for classes too (only files ending in '.php' are loaded). Files are loaded by call to
+    // spl_autoloader, not all upfront.
     private static $implementation_path = 'code/api/{version}/';
 
     // we may want to restrict loaded classes by a prefix
     private static $expect_class_prefix = 'Checkfront';
 
-    // we may want to strip off a class prefix, can use tokens, go from longer to shorter
+    // we may want to strip off a class prefix in implementation classes, can use tokens, go from longer to shorter
     private static $remove_class_name_prefix = array(
         'CheckfrontAPI',
         'Checkfront'
@@ -27,6 +30,10 @@ class CheckfrontLoader extends Object {
         'Response',
         '_{_version}'
     );
+
+    private $implPath;
+
+    private $sdkPath;
 
     /**
      * Loads all *.php files found at the sdk path module/sdk/{version}/lib and adds this.loadClass to
@@ -45,27 +52,38 @@ class CheckfrontLoader extends Object {
             // no version, try and take from config instead.
             $version = $this->config()->get('version');
         }
+        $pathTemp = $this->config()->get('sdk_path');
 
+        // if sdk path is 'absolute' then load from site root, otherwise load relative to checkfront module directory
+        $this->sdkPath = Controller::join_links(
+            Director::baseFolder(),
+            substr($pathTemp, 0, 1) === '/' ? '' : CheckfrontModule::module_path(),
+            $this->detokenise($pathTemp, $version)
+        );
+/*
+        // recurse through the sdk path and look for file matching the mangled class name to require.
+        $itr = new RegexIterator(
+            new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($sdkPath),
+                RecursiveIteratorIterator::SELF_FIRST
+            ),
+            '*.php'
+        );
+        foreach ($itr as $file) {
+            require_once($file);
+        }
+*/
+        // now save the implementation path for later
         $this->implPath = Controller::join_links(
             Director::baseFolder(),
             CheckfrontModule::module_path(),
             $this->detokenise($this->config()->get('implementation_path'), $version)
         );
 
-        $sdkPath = Controller::join_links(
-            Director::baseFolder(),
-            CheckfrontModule::module_path(),
-            $this->detokenise($this->config()->get('sdk_path'), $version)
-        );
-
-        foreach (glob($sdkPath . '*.php') as $file) {
-            require_once($file);
-        }
-
-        spl_autoload_register([
+        spl_autoload_register(array(
             $this,
             'loadClass'
-        ]);
+        ));
     }
 
 
@@ -76,45 +94,51 @@ class CheckfrontLoader extends Object {
      * @param $className
      */
     public function loadClass($className) {
+        // only load files which start with this.
         $expectClassPrefix = $this->config()->get('expect_class_prefix');
 
         if (!$expectClassPrefix || (substr($className, 0, strlen($expectClassPrefix)) == $expectClassPrefix)) {
             $version = $this->config()->get('version');
 
+            // start with filename = classname
+            $fileName = $className;
+
+            // detokenise and clean up possible class prefixes
             $stripPrefix = $this->detokenise(
                 $this->config()->get('remove_class_name_prefix'),
                 $version
             );
-            $stripSuffix = $this->detokenise(
-                $this->config()->get('remove_class_name_suffix'),
-                $version
-            );
-            $fileName = $className;
-
             // strip prefixes if they exists in className
             foreach ($stripPrefix as $prefix) {
                 if (substr($fileName, 0, strlen($prefix)) === $prefix) {
                     $fileName = substr($fileName, strlen($prefix));
                 }
             }
+
+            // detokenise and clean up possible class suffixes
+            $stripSuffix = $this->detokenise(
+                $this->config()->get('remove_class_name_suffix'),
+                $version
+            );
             // strip suffix if it exists in className
             foreach ($stripSuffix as $suffix) {
                 if (substr($fileName, -strlen($suffix)) === $suffix) {
                     $fileName = substr($fileName, 0, -strlen($suffix));
                 }
             }
-            $fileName .= '.php';
-            $filePath = $this->implPath;
+            // scan sdk path first then implementation path for $fileName.php
+            foreach (array($this->sdkPath, $this->implPath) as $path) {
 
-            $filePathName = $filePath . $fileName;
-
-            if (file_exists($filePathName)) {
-                require_once($filePathName);
-                return;
-            }
-            // not in SDK base so try sub-directories matching on the name.
-            foreach (glob("$filePath*/*.php") as $foundFile) {
-                if (basename($foundFile) == $fileName) {
+                // recurse through the implementation path and look for file matching the mangled class name to require.
+                $itr = new RegexIterator(
+                    new RecursiveIteratorIterator(
+                        new RecursiveDirectoryIterator($path),
+                        RecursiveIteratorIterator::SELF_FIRST
+                    ),
+                    "/$fileName\\.php/"
+                );
+                // should really only be one
+                foreach ($itr as $foundFile) {
                     require_once($foundFile);
                     return;
                 }
@@ -133,14 +157,14 @@ class CheckfrontLoader extends Object {
      */
     private function detokenise($stringsWithTokens, $version) {
         $underscoreVersion = str_replace('.', '_', $version);
-        return str_replace([
+        return str_replace(array(
                 '{version}',
                 '_{_version}'
-            ],
-            [
+            ),
+            array(
                 $version,
                 $underscoreVersion
-            ],
+            ),
             $stringsWithTokens
         );
     }

@@ -1,14 +1,12 @@
 <?php
 class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
 
-    private static $package_items_path = 'item.product_group_children';
-
     /**
      * @return CheckfrontPackageModel|null
      */
     public function getPackage() {
         if ($this->isValid()) {
-            return CheckfrontPackageModel::create()->fromCheckfront($this->data);
+            return CheckfrontPackageModel::create()->fromCheckfront($this->data['item']);
         }
     }
 
@@ -22,9 +20,11 @@ class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
         $list = new ArrayList();
 
         if ($this->isValid()) {
-            if (isset($this->data['item']['product_group_children'])) {
+            $path = self::get_config_setting('package_items_path');
 
-                $packageItems = $this->data['item']['product_group_children'] ?: [];
+            $packageItems = CheckfrontModule::lookup_path($path, $this->data, $found);
+
+            if ($packageItems && $found) {
 
                 foreach ($packageItems as $item) {
                     $list->push(

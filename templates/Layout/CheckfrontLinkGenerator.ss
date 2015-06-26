@@ -1,22 +1,40 @@
 <div class="checkfront-link-generator">
-    $CheckfrontLinkGeneratorForm
-
-	<div class="checkfront-link-info">
-		<% if $Package %>
+	<% if $BookingLink %>
+		<div class="checkfront-link-info">
 			<table>
 				<tr>
 					<td>Name</td><td>$Package.Title</td>
-					<td>SKU</td><td>$Package.SKU</td>
-					<td>Type</td><t>$Posted.Type</t>
-					<td>Start Date</td><td>$Posted.StartDate</td>
-					<td>End Date</td><td>$Posted.EndDate</td>
-					<td>AccessKey</td><td>$Posted.AccessKey</td>
 				</tr>
 				<tr>
-					<td>Link</td>
-					<td colspan="5">$Link</td>
+					<td>SKU</td><td>$Package.SKU</td>
+				</tr>
+				<tr>
+					<td>Type</td><t>$Posted.Type</t>
+				</tr>
+				<tr>
+					<td>Start Date</td><td>$Posted.StartDate</td>
+				</tr>
+				<tr>
+					<td>End Date</td><td>$Posted.EndDate</td>
 				</tr>
 			</table>
-		<% end_if %>
-	</div>
+			<table>
+				<tr>
+					<td>Link</td>
+					<td colspan="5"><a href="$BookingLink">$BookingLink</a></td>
+				</tr>
+				<tr>
+					<td>Access Key</td>
+					<td colspan="5">$AccessKey</td>
+				</tr>
+			</table>
+		</div>
+
+	<% else %>
+
+		$CheckfrontForm
+
+	<% end_if %>
+
+    </div>
 </div>

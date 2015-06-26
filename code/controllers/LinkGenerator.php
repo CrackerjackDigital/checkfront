@@ -1,5 +1,5 @@
 <?php
-
+use \Defuse\Crypto\Crypto as Crypto;
 
 class CheckfrontLinkGeneratorController extends ContentController {
     private static $allowed_actions = array(
@@ -16,26 +16,40 @@ class CheckfrontLinkGeneratorController extends ContentController {
     }
 
     public function index(SS_HTTPRequest $request) {
-        if ($request->isGET()) {
-            return $this->show($request);
-        } else {
+        if ($request->isPOST()) {
             return $this->generate($request);
+        } else {
+            return $this->show($request);
         }
     }
 
-    public function CheckfrontLinkGeneratorForm() {
+    protected function buildLinkGeneratorForm() {
         $form = new CheckfrontLinkGeneratorForm(
             $this,
-            CheckfrontLinkGeneratorForm::FormName,
+            '',
             new FieldList(),
             new FieldList()
         );
-        $form->setFormAction($this->getRequest()->getURL());
+        $form->setFormAction('/' . $this->getRequest()->getURL());
         return $form;
     }
 
+    /**
+     * Return rendered CheckfrontLinkGenerator template. This has embedded CheckfrontLinkGeneratorForm
+     * where fields are shown.
+     *
+     * @param SS_HTTPRequest $request
+     *
+     * @return HTMLText
+     */
     protected function show(SS_HTTPRequest $request) {
-        return $this->renderWith(array('CheckfrontLinkGenerator', 'Page'));
+        return $this->renderWith(
+            array('CheckfrontLinkGenerator', 'Page'),
+            array(
+                'CheckfrontForm' => $this->buildLinkGeneratorForm(),
+                'Controller' => $this
+            )
+        );
     }
 
     /**
@@ -56,29 +70,33 @@ class CheckfrontLinkGeneratorController extends ContentController {
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName]
         )->getPackage();
 
-        $accessKey = CheckfrontModule::make_access_key();
+        $accessKey = CheckfrontModule::crypto()->make_access_key();
 
         $link = $this->makeLink(
-            $postVars[CheckfrontLinkGeneratorForm::TypeFieldName],
             $accessKey,
+            $postVars[CheckfrontLinkGeneratorForm::TypeFieldName],
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
             $postVars[CheckfrontLinkGeneratorForm::StartDateFieldName],
             $postVars[CheckfrontLinkGeneratorForm::EndDateFieldName]
         );
 
+        $form = $this->buildLinkGeneratorForm();
+
+        // NB: for the output we encode (e.g. binToHex) the accessKey to make it more user-friendly
         return $this->renderWith(
             array('CheckfrontLinkGenerator', 'Page'),
             array(
                 'Package' => $package,
                 'Posted' => $request->postVars(),
-                'AccessKey' => base64_encode($accessKey),
-                'Link' => $link
+                'AccessKey' => CheckfrontModule::crypto()->encode($accessKey),
+                'BookingLink' => $link,
+                'CheckfrontForm' => $form
             )
         );
     }
 
     /**
-     * Returns array of accessKey and link.
+     * Returns link to booking on the site, with the encoded token further urlencoded
      *
      * @param $typeEndPoint - e.g 'public' or 'private'
      * @param $accessKey - plain access key (e.g. not base64 encoded)
@@ -88,13 +106,13 @@ class CheckfrontLinkGeneratorController extends ContentController {
      *
      * @internal param array $parameters - e.g. from postVars
      *
-     * @return array - [accessKey, $link]
+     * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
-    protected static function makeLink($typeEndPoint, $accessKey, $itemID, $startDate, $endDate) {
-        $link = Controller::join_links(
+    protected static function makeLink($accessKey, $typeEndPoint, $itemID, $startDate, $endDate) {
+        return Controller::join_links(
             Director::absoluteBaseURL(),
             $typeEndPoint,
-            CheckfrontModule::encode_link_segment(
+            CheckfrontModule::crypto()->encrypt_token(
                 $accessKey,
                 $itemID,
                 $startDate,

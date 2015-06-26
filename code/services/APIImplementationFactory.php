@@ -1,6 +1,6 @@
 <?php
 /**
- * Factory class for API
+ * Factory class for API Implementation/Facade
  */
 
 class CheckfrontAPIImplementationFactory implements \SilverStripe\Framework\Injector\Factory {

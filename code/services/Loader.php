@@ -28,6 +28,7 @@ class CheckfrontLoader extends Object {
     // we may want to strip off a class suffix, can use tokens, go from longer to shorter
     private static $remove_class_name_suffix = array(
         'Response',
+        'Service',
         '_{_version}'
     );
 

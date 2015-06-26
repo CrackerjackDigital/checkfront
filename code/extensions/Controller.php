@@ -16,7 +16,7 @@ class CheckfrontControllerExtension extends SiteTreeExtension {
     /**
      * @return CheckfrontAPIImplementation
      */
-    public function api() {
+    protected function api() {
         return $this->api;
     }
 }

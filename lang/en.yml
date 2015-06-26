@@ -1,9 +1,15 @@
 en:
-  CheckfrontLinkGeneratorForm:
+  CheckfrontForm:
     PackageIDFieldLabel: 'Package'
     PackageIDFieldEmptyString: 'Select a package'
     StartDateFieldLabel: 'Start date'
     EndDateFieldLabel: 'End date'
-    AccessKeyFieldLabel: 'Access key'
+    AccessKeyFieldLabel: 'Enter your access key'
+  CheckfrontLinkGeneratorForm:
     TypeFieldLabel: 'Package type'
-    GenerateButtonText: 'Generate'
+    SubmitButtonText: 'generate'
+  CheckfrontBookingForm:
+    SubmitButtonText: 'book'
+  CheckfrontAccessKeyForm:
+    SubmitButtonText: 'verify'
+

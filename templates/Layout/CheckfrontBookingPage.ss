@@ -1,3 +1,3 @@
 <div class="checkfront-booking-page">
-	<% include CheckfrontPackageBookingForm %>
+	<% include CheckfrontForm ContainerClass='booking-form'%>
 </div>

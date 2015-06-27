@@ -1,9 +1,8 @@
 <?php
 
 class CheckfrontTest extends SapphireTest {
-
     // config used across all checkfront tests.
-    private $sharedConfig = array(
+    private static $config = array(
         'CheckfrontAPIConfig'             => array(
             'host'       => 'digitalhod.checkfront.com',
             'account_id' => 'off'
@@ -16,19 +15,20 @@ class CheckfrontTest extends SapphireTest {
 
     public function setUpOnce() {
         parent::setUpOnce();
-        $this->loadConfig();
+        $this->loadConfig(self::$config);
     }
+
 
     /**
      * Set class configurations according to $replace parameter and passed $config:
      *
      *  if $replace is false then
-     *      if non-empty config then merge with sharedConfig (parameter values override shared)
-     *      if empty $config then just the sharedConfig gets loaded
+     *      if non-empty config then merge with existing self.config (parameter values override shared)
+     *      if empty $config then just the existing self.config gets loaded
      *
      *  if $replace is true
-     *      if non-empty config then use $config without merging with sharedConfig
-     *      if empty $config then no changes get made, including no sharedConfig
+     *      if non-empty config then use $config without merging with existing self.config
+     *      if empty $config then no changes get made, including to existing self.config
      *
      * @param array $config
      * @param bool $replace
@@ -36,7 +36,7 @@ class CheckfrontTest extends SapphireTest {
     protected function loadConfig(array $config = array(), $replace = false) {
         if (!$replace) {
             $config = array_merge(
-                $this->sharedConfig,
+                self::$config,
                 $config
             );
         }

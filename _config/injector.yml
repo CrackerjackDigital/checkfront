@@ -14,4 +14,4 @@ Injector:
   CheckfrontAuthenticator: CheckfrontAPITokenAuthenticator    # default
   CheckfrontCache: CheckfrontCacheNull
   CheckfrontSession: CheckfrontSession
-  CheckfrontCryptoService: CheckfrontCryptoDefuse
+  CheckfrontCryptoService: CryptofierCryptoDefuse

@@ -98,25 +98,26 @@ class CheckfrontLinkGeneratorController extends ContentController {
     /**
      * Returns link to booking on the site, with the encoded token further urlencoded
      *
+     * @param $accessKey    - plain access key (e.g. not base64 encoded)
      * @param $typeEndPoint - e.g 'public' or 'private'
-     * @param $accessKey - plain access key (e.g. not base64 encoded)
      * @param $itemID
      * @param $startDate
      * @param $endDate
      *
+     * @internal param $array - [ItemID, StartDate, EndDate]
      * @internal param array $parameters - e.g. from postVars
-     *
      * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
     protected static function makeLink($accessKey, $typeEndPoint, $itemID, $startDate, $endDate) {
         return Controller::join_links(
             Director::absoluteBaseURL(),
             $typeEndPoint,
-            CheckfrontModule::crypto()->encrypt_token(
-                $accessKey,
-                $itemID,
-                $startDate,
-                $endDate
+            CheckfrontModule::crypto()->encrypt_token(array(
+                    $itemID,
+                    $startDate,
+                    $endDate
+                ),
+                $accessKey
             )
         );
     }

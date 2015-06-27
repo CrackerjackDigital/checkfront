@@ -1,26 +1,130 @@
 <?php
-use \Defuse\Crypto\Crypto as Crypto;
+class CheckfrontCryptoTest extends CheckfrontTest {
 
-class CheckfrontCryptoTest extends SapphireTest {
+    public $description = 'Test Checkfront module Crypto functions using CryptoDefuse';
 
-    public $description = 'Test CheckfrontModule cryptographical functions';
 
-    public function testModuleCryptoFunctions() {
-        $accessKey = Crypto::createNewRandomKey();
+    private $injectorConfig = array(
+        /*  e.g. serviceName => className
+                'CheckfrontCryptoService' => 'CheckfrontCryptoDefuse'
+        */
+    );
 
-        $token = CheckfrontModule::encode_token(
-            $accessKey,
-            123123,
-            '2015-06-26',
-            '2015-06-30'
+    private $plainText = <<<PLAINTEXT
+        The woods are lovely dark and deep,
+        but I have promises to keep,
+        and miles to go before I sleep,
+        and miles to go before I sleep.
+
+        Synbols: !@#$%^&*()_{}}{[\][;'l';/.,/.,|}{":?><
+        Unicode: ā₣℞ℳ<⊅∄∝'‘’‛?§″′"'˝„°❞❝
+PLAINTEXT;
+
+    private $token = array(
+        20,
+        '2015-10-01',
+        '2015-10-15'
+    );
+
+    private $cryptoClasses = array(
+        'CheckfrontCryptoDefuse',
+        'CheckfrontCryptoZend'
+    );
+
+    /**
+     * Give the IDE some type hinting/autocomplete help.
+     *
+     * @return $this|PHPUnit_Framework_Assert
+     */
+    public function __invoke() {
+        return $this;
+    }
+
+    public function setUp() {
+        parent::setUp();
+        Injector::nest();
+    }
+
+    public function tearDown() {
+        Injector::unnest();
+        parent::tearDown();
+    }
+
+    public function testNativeFunctions() {
+        // test for each service registered
+        foreach ($this->cryptoClasses as $className) {
+
+            $this->configureCryptoService($className);
+
+            $crypto = CheckfrontModule::crypto();
+
+            $key = $crypto->generate_key();
+
+            $encrypted = $crypto->encrypt_native($this->plainText, $key);
+
+            $decrypted = $crypto->decrypt_native($encrypted, $key);
+
+            $this()->assertEquals($decrypted, $this->plainText, "That decrypted value equals config.plain_text");
+        }
+    }
+
+    public function testBasicFunctions() {
+        // test for each service registered
+        foreach ($this->cryptoClasses as $className) {
+
+            $this->configureCryptoService($className);
+
+            $crypto = CheckfrontModule::crypto();
+
+            // run for no and with access key
+            foreach (array(null, $crypto->generate_key()) as $accessKey) {
+
+                $encrypted = $crypto->encrypt($this->plainText, $accessKey);
+
+                $decrypted = $crypto->decrypt($encrypted, $accessKey);
+
+                $this()->assertEquals($decrypted, $this->plainText, "That decrypted value equals config.plain_text");
+            }
+        }
+    }
+
+    public function testTokenFunctions() {
+        list($itemID, $startDate, $endDate) = $this->token;
+
+        foreach ($this->cryptoClasses as $className) {
+
+            $this->configureCryptoService($className);
+
+            $crypto = CheckfrontModule::crypto();
+
+            // run for no and with access key
+            foreach (array(null, $crypto->generate_key()) as $accessKey) {
+
+                $encrypted = $crypto->encrypt_token(
+                    $itemID,
+                    $startDate,
+                    $endDate,
+                    $accessKey
+                );
+                list($id, $start, $end) = $crypto->decrypt_token($encrypted, $accessKey);
+
+                $this()->assertEquals($itemID, $id, "Assert that '$itemID' = '$id'");
+                $this()->assertEquals($startDate, $start, "Assert that '$startDate' = '$start'");
+                $this()->assertEquals($endDate, $end, "Assert that '$endDate' = '$end'");
+            }
+        }
+    }
+
+    protected function configureCryptoService($className) {
+        /** @var CheckfrontCryptoInterface $instance */
+        $instance = $className::create();
+
+        Injector::inst()->registerService(
+            $instance,
+            'CheckfrontCryptoService'
         );
-        list($itemID, $startDate, $endDate) = CheckfrontModule::decode_token(
-            $accessKey,
-            $token
-        );
-        $this->assertEquals($itemID, 123123, "Assert that '$itemID' = 123123");
-        $this->assertEquals($startDate, '2015-06-26', "Assert that '$startDate' = '2015-06-26'");
-        $this->assertEquals($endDate, '2015-06-30', "Assert that '$endDate' = '2015-06-30'");
+        $serverKeyConfigName = $instance->config()->get('server_key_config_name');
+        Config::inst()->update($className, $serverKeyConfigName, $instance->generate_key());
     }
 
 }

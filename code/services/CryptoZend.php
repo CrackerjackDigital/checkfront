@@ -3,93 +3,97 @@ use Zend\Crypt\BlockCipher as BlockCipher;
 use Zend\Crypt\Key\Derivation\Scrypt as KeyGen;
 use Zend\Math\Rand;
 
-class CheckfrontCryptoZend extends CheckfrontCrypto implements CheckfrontCryptoInterface {
+class CheckfrontCryptoZend extends CheckfrontCrypto {
 
+    // server key used by encrypt, decrypt methods to always encrypt with this on first pass
+    // should be in 'friendly' format
     private static $server_key = '';
 
-    public static function server_key() {
-        return hex2bin(static::config()->get('server_key'));
-    }
+    // what we use to split fields in the token, should be very unlikely to be in a field value.
+    private static $token_delimiter = self::TokenDelimiter;
 
     /**
-     * Return a value which is safe to use in url's and copy-paste operations and is
-     * ANSI. May not actually have anything to do with PHP url_encode etc such as using binToHex
+     * Generate a key and return in 'friendly' format.
      *
-     * @param $rawValue
+     * @param string $salt - optional 32 byte salt (if not supplied one will be generated)..
      *
-     * @return mixed
+     * @return string - friendly
      */
-    public static function friendly($rawValue) {
-        return bin2hex($rawValue);
-    }
-
-    /**
-     * Return the raw value for a cooked value which may be unsafe to use in urls, human-unfriendly etc
-     * May not have anything to do with url_decode but us something like hexToBin
-     *
-     * @param $cookedValue
-     *
-     * @return mixed
-     */
-    public static function unfriendly($cookedValue) {
-        return hex2bin($cookedValue);
-    }
-
-    /**
-     * Encrypt value optionally using key
-     *
-     * @param $plainTextValue
-     * @param $key
-     *
-     * @throws Exception
-     * @return mixed
-     */
-    public static function encrypt($plainTextValue, $key = null) {
-        try {
-            $blockCipher = BlockCipher::factory('mcrypt', array('algo' => 'aes'));
-
-            $blockCipher->setKey($key);
-
-            return $blockCipher->encrypt($plainTextValue);
-
-        } catch (Exception $e) {
-            throw new Exception("Failed to encrypt");
-        }
-    }
-
-    /**
-     * Decrypt value optionally using key
-     *
-     * @param $encryptedValue
-     * @param $key
-     *
-     * @throws Exception
-     * @return mixed
-     */
-    public static function decrypt($encryptedValue, $key = null) {
-        try {
-            $blockCipher = BlockCipher::factory('mcrypt', array('algo' => 'aes'));
-
-            $blockCipher->setKey($key);
-
-            return $blockCipher->decrypt($encryptedValue);
-            
-        } catch (Exception $e) {
-            throw new Exception("Failed to decrypt");
-        }
-
-    }
-
-    /**
-     * Generate a new unfriendly access key.
-     *
-     * @param null $salt
-     *
-     * @return string
-     */
-    public static function generate_key($salt = null) {
+    public function generate_key($salt = null) {
         $salt = mb_strlen($salt) === 32 ? $salt : Rand::getBytes(32, true);
         $pass = Rand::getBytes(32, true);
-        return KeyGen::calc($pass, $salt, 2048, 2, 1, 32);
+
+        return $this->friendly(
+            KeyGen::calc($pass, $salt, 2048, 2, 1, 32)
+        );
     }
+
+    /**
+     * Use bin2hex to make 'friendly' value for urls, cut-and-paste, typeable etc
+     *
+     * @param $unfriendlyValue
+     *
+     * @return string - 'friendly' value
+     */
+    public function friendly($unfriendlyValue) {
+        return bin2hex($unfriendlyValue);
+    }
+
+    /**
+     * Use hex2bin to make 'unfriendly' version of value from the 'friendly' function.
+     *
+     * @param $friendlyValue
+     *
+     * @return string - unfriendly
+     */
+    protected function unfriendly($friendlyValue) {
+        return hex2bin($friendlyValue);
+    }
+
+
+    /**
+     * @see CheckfrontCryptoInterface
+     *
+     * @param $value
+     * @param $friendlyKey
+     *
+     * @return string - maybe unfriendly
+     * @throws CheckfrontCryptoException
+     */
+    public function encrypt_native($value, $friendlyKey) {
+        try {
+            $cipher = BlockCipher::factory('mcrypt', array('algo' => 'aes'));
+            $cipher->setKey(
+                $this->unfriendly($friendlyKey)
+            );
+            return $cipher->encrypt($value);
+
+        } catch (Exception $e) {
+            throw new CheckfrontCryptoException("Failed to " . __METHOD__);
+        }
+    }
+
+    /**
+     * @see CheckfrontCryptoInterface
+     *
+     * @param $value
+     * @param $friendlyKey
+     *
+     * @return string - maybe unfriendly
+     * @throws CheckfrontCryptoException
+     */
+    public function decrypt_native($value, $friendlyKey) {
+        try {
+            $cipher = BlockCipher::factory('mcrypt', array('algo' => 'aes'));
+            $cipher->setKey(
+                $this->unfriendly($friendlyKey)
+            );
+            return $cipher->decrypt($value);
+
+        } catch (Exception $e) {
+            throw new CheckfrontCryptoException("Failed to " . __METHOD__);
+        }
+
+    }
+
 }

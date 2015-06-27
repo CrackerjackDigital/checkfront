@@ -1,7 +1,7 @@
 <?php
 
 
-class CheckfrontPackageTest extends SapphireTest {
+class CheckfrontPackageTest extends CheckfrontTest {
     public function testPackage() {
         /** @var CheckfrontAPIImplementation|CheckfrontAPIPackagesEndpoint|CheckfrontAPIBookingFormEndpoint $api */
         $api = CheckfrontModule::api();

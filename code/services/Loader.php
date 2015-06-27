@@ -61,19 +61,7 @@ class CheckfrontLoader extends Object {
             substr($pathTemp, 0, 1) === '/' ? '' : CheckfrontModule::module_path(),
             $this->detokenise($pathTemp, $version)
         );
-/*
-        // recurse through the sdk path and look for file matching the mangled class name to require.
-        $itr = new RegexIterator(
-            new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($sdkPath),
-                RecursiveIteratorIterator::SELF_FIRST
-            ),
-            '*.php'
-        );
-        foreach ($itr as $file) {
-            require_once($file);
-        }
-*/
+
         // now save the implementation path for later
         $this->implPath = Controller::join_links(
             Director::baseFolder(),

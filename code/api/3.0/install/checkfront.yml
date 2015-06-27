@@ -2,6 +2,14 @@
 Name: checkfront-module-config
 # Copy to your app config directory and specialise as required. This is a 3.0 version file.
 ---
+Injector:
+  CheckfrontCryptoService:
+    class: CheckfrontCryptoZend
+
+CheckfrontModule:
+  public_end_point: ''      # what is the booking page link?
+  package_category_id: 6    # set to the id for 'packages' category in checkfront
+
 CheckfrontAPIConfig:
   host: 'accountname.checkfront.com'
   account_id: 'off'   # off|on see checkfront docs, generally 'off' I believe
@@ -11,13 +19,8 @@ CheckfrontAPITokenAuthenticator:
   api_key: ''         # api key from checkfront admin interface
   api_secret: ''      # api secret from checkfront admin interface
 
-CheckfrontModule:
-  package_category_id: 6    # set to the id for 'packages' category in checkfront
-  public_end_point: ''      # what is the booking page link?
-
 CheckfrontCryptoService:
   crypto_key: ''      # should be binToHex of Crypto.createNewRandomKey (link generator AcccessKey is one)
-
 
 #CheckfrontAPIFacade:        # add extensions we will be using in this app to call API with
 #  extensions:

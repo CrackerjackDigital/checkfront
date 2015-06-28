@@ -21,7 +21,7 @@ class CheckfrontBookingForm extends CheckfrontForm {
         $actions = $actions ?: new FieldList();
 
         // add the standard 'booking' fields (name etc)
-        if ($response = $controller->api()->fetchBookingForm()) {
+        if ($response = CheckfrontModule::api()->fetchBookingForm()) {
             if ($response->isValid()) {
 
                 // now add the booking fields to the fieldlist for the form

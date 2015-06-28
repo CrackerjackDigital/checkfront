@@ -12,6 +12,11 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const PrivateEndPoint = 'checkfront/book';
     const LinkGeneratorEndPoint = 'checkfront/link-generator';
 
+    // index of ItemID (e.g. package ID) in decrypted token array
+    const TokenItemIDIndex = 0;
+    const TokenStartDateIndex = 1;
+    const TokenEndDateIndex = 2;
+
     /** @var  string override the installed path of checkfront module */
     private static $module_path;
 
@@ -35,7 +40,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * NB: add endpoints which have extended the implementation to the return typehints to get better automcomplete in
      * ide's which support it.
      *
-     * @return CheckfrontAPIFacade|CheckfrontAPIImplementation|CheckfrontAPIPackagesEndpoint|CheckfrontAPIItemsEndpoint
+     * @return CheckfrontAPIFacade|CheckfrontAPIImplementation|CheckfrontAPIPackagesEndpoint|CheckfrontAPIItemsEndpoint|CheckfrontAPIBookingFormEndpoint
      */
     public static function api() {
         return Injector::inst()->get('CheckfrontAPI');
@@ -63,10 +68,12 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     }
 
     /**
-     * @return CheckfrontCryptoInterface
+     * Use Injector to create configured 'CryptofierService'
+     *
+     * @return CryptofierImplementation
      */
     public static function crypto() {
-        return Injector::inst()->get('CheckfrontCryptoService');
+        return Injector::inst()->get('CryptofierService');
     }
 
     /**

@@ -56,7 +56,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
      * Renders the CheckfrontLinkGenerator template with filled in
      *  -   Package
      *  -   Posted array info
-     *  -   AccessKey base64_encode so can copy/paste
+     *  -   AccessKey encoded so can copy/paste
      *  -   Link to copy paste to email
      *
      * @param SS_HTTPRequest $request
@@ -70,7 +70,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName]
         )->getPackage();
 
-        $accessKey = CheckfrontModule::crypto()->make_access_key();
+        $accessKey = CheckfrontModule::crypto()->generate_key();
 
         $link = $this->makeLink(
             $accessKey,
@@ -82,13 +82,12 @@ class CheckfrontLinkGeneratorController extends ContentController {
 
         $form = $this->buildLinkGeneratorForm();
 
-        // NB: for the output we encode (e.g. binToHex) the accessKey to make it more user-friendly
         return $this->renderWith(
             array('CheckfrontLinkGenerator', 'Page'),
             array(
                 'Package' => $package,
                 'Posted' => $request->postVars(),
-                'AccessKey' => CheckfrontModule::crypto()->encode($accessKey),
+                'AccessKey' => $accessKey,
                 'BookingLink' => $link,
                 'CheckfrontForm' => $form
             )
@@ -96,9 +95,9 @@ class CheckfrontLinkGeneratorController extends ContentController {
     }
 
     /**
-     * Returns link to booking on the site, with the encoded token further urlencoded
+     * Returns link to booking on the site
      *
-     * @param $accessKey    - plain access key (e.g. not base64 encoded)
+     * @param $accessKey    - from Cryptofier.generate_key
      * @param $typeEndPoint - e.g 'public' or 'private'
      * @param $itemID
      * @param $startDate
@@ -115,7 +114,8 @@ class CheckfrontLinkGeneratorController extends ContentController {
             CheckfrontModule::crypto()->encrypt_token(array(
                     $itemID,
                     $startDate,
-                    $endDate
+                    $endDate,
+                    $typeEndPoint
                 ),
                 $accessKey
             )

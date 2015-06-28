@@ -6,6 +6,7 @@ class CheckfrontSession extends Object implements CheckfrontSessionInterface {
     const IDKey = 'id';
     const DataKey = 'data';
     const AccessKey = 'access_key';
+    const TokenKey = 'token';
 
     /**
      * Return saved checkfront session ID from php session.
@@ -26,6 +27,8 @@ class CheckfrontSession extends Object implements CheckfrontSessionInterface {
         Session::set(self::KeyPrefix . '.' . self::IDKey, $sessionID);
         return $this;
     }
+
+
 
     /**
      * Return data from session with key e.g.  'checkfront.data.package' where $what is 'package'.
@@ -94,7 +97,7 @@ class CheckfrontSession extends Object implements CheckfrontSessionInterface {
     /**
      * @return string
      */
-    public function getAcccessKey() {
+    public function getAccessKey() {
         return $this->getData(self::AccessKey);
     }
 
@@ -104,5 +107,30 @@ class CheckfrontSession extends Object implements CheckfrontSessionInterface {
     public function clearAccessKey() {
         $this->clearData(self::AccessKey);
         return $this;
+    }
+
+
+    /**
+     * Return data from session with key e.g.  'checkfront.data.package' where $what is 'package'.
+     * @return array|mixed|null|Session
+     */
+    public function getToken()
+    {
+        return $this->getData(self::TokenKey);
+    }
+
+    /**
+     * Set value to session with key e.g. 'checkfront.data.package' where $what is 'package'.
+     *
+     * @param array $token
+     *
+     * @internal param $what
+     * @internal param $data
+     * @return CheckfrontSessionInterface
+     * @fluent
+     */
+    public function setToken(array $token)
+    {
+        return $this->setData(self::TokenKey, $token);
     }
 }

@@ -23,6 +23,11 @@ interface CheckfrontSessionInterface {
     public function getData($what);
 
     /**
+     * @return string
+     */
+    public function getAccessKey();
+
+    /**
      * @param $key
      *
      * @return string
@@ -32,7 +37,14 @@ interface CheckfrontSessionInterface {
     /**
      * @return string
      */
-    public function getAcccessKey();
+    public function getToken();
+
+    /**
+     * @param array $token
+     *
+     * @return string
+     */
+    public function setToken(array $token);
 
     /**
      * @param $what - key for value, will be prefixed with checkfront prefix in dot-notation before storage.

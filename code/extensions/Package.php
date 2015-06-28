@@ -1,6 +1,4 @@
 <?php
-use \Defuse\Crypto\Crypto as Crypto;
-
 /**
  * A package oriented controller extension which can be added to a Page_Controller to provide
  * checkfont package booking functionality.
@@ -73,7 +71,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             }
         } catch (Exception $e) {
             // bad token
-            $this()->httpError(500, $e->getMessage());
+            return $this()->httpError(500, $e->getMessage());
         }
     }
 
@@ -99,15 +97,15 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * @return array|null
      */
     public function getTokenInfo($which = null, $accessKey = null) {
-        if (!$detokenised = CheckfrontModule::session()->getData('Token')) {
+        if (!$detokenised = CheckfrontModule::session()->getToken()) {
             if ($accessKey) {
                 $request = $this()->getRequest();
 
                 if ($token = $request->param(self::TokenParam)) {
 
                     // we strip out the access key from the static variable cached values as it won't be used again
-                    CheckfrontModule::session()->setTokenInfo(
-                        CheckfrontCryptoService::decrypt_token($accessKey, $token)
+                    CheckfrontModule::session()->setToken(
+                        CheckfrontModule::crypto()->decrypt_token($token, $accessKey)
                     );
 
             } else {
@@ -117,7 +115,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
             }
         };
-        if ($which) {
+        if (!is_null($which)) {
             if (!array_key_exists($which, $detokenised)) {
                 throw new Exception("Bad which '$which'");
             }
@@ -138,16 +136,20 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      */
     protected function showBookingForm(SS_HTTPRequest $request) {
 
-        // access key posted by AccessKeyForm is from the original link generator so is bin2hex encoded
-        // we need to hex2bin it before using it.
-        $accessKey = Crypto::hexTobin($request->postVar(CheckfrontAccessKeyForm::AccessKeyFieldName));
+        // access key posted by AccessKeyForm is from cryptofier.generate_key via the original link generator
+        $accessKey = $request->postVar(CheckfrontAccessKeyForm::AccessKeyFieldName);
 
         if (!$accessKey) {
             throw new Exception("No access key posted");
         }
 
-        // check entered key is a valid Crypto key first, should throw exception if not
-        Crypto::encrypt('somethingrandomheredontcarewhat', $accessKey);
+        try {
+            // check entered key is a valid Crypto key first, should throw exception if not
+            CheckfrontModule::crypto()->encrypt('somethingrandomheredontcarewhat', $accessKey);
+        } catch (CryptofierException $e) {
+            Session::setFormMessage('', 'Invalid access key', 'bad');
+            return $this()->redirectBack();
+        }
 
         $session = CheckfrontModule::session();
 
@@ -163,9 +165,9 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             // no session, try fetch package again and store in session
             $session->clearData(self::PackageSessionKey);
 
-            $packageID = $this->getTokenInfo(CheckfrontModule::TokenAccessKeyIndex);
+            $packageID = $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex, $accessKey);
 
-            if ($packageID) {
+            if (is_numeric($packageID)) {
 
                 if ($packageResponse = $this->api()->fetchPackage($packageID)) {
 
@@ -220,7 +222,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         // only post request should route here
         $postVars = $request->postVars();
 
-        $packageID = $this->getTokenInfo(CheckfrontModule::TokenAccessKeyIndex);
+        $packageID = $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex);
 
         if ($request->isPOST()) {
 

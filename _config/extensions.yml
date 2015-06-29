@@ -5,6 +5,17 @@ Member:
   extensions:
     - CheckfrontMemberExtension
 
+CheckfrontBookingPage:
+  extensions:
+    - CheckfrontPageExtension
+
 CheckfrontBookingPage_Controller:
   extensions:
     - CheckfrontPackageControllerExtension
+
+#CheckfrontAPIFacade:     # add extensions we will be using in this app to call API with
+#  extensions:
+#    - CheckfrontAPIItemsEndpoint
+#    - CheckfrontAPIPackagesEndpoint
+#    - CheckfrontAPIBookingFormEndpoint
+#    - CheckfrontAPIBookingEndpoint

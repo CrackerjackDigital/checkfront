@@ -19,10 +19,6 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const TokenLinkTypeIndex = 3;
     const TokenUserTypeIndex = 4;
 
-    private static $payment_method_test = array(
-        'DummyMerchantHosted' => 'Test'
-    );
-
     /** @var  string override the installed path of checkfront module */
     private static $module_path;
 

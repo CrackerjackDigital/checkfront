@@ -226,6 +226,9 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * @return array
      */
     protected function showAccessKeyForm(SS_HTTPRequest $request) {
+
+        CheckfrontModule::session()->clear(null);
+
         $form = $this->buildAccessKeyForm();
 
         return array(

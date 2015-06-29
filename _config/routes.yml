@@ -3,6 +3,5 @@ Name: checkfront-module-routes
 ---
 Director:
   rules:
-    'checkfront/item': CheckfrontItemController
-    'checkfront/package': CheckfrontPackageController
+    'checkfront/book': CheckfrontPackageController
     'checkfront/link-generator': CheckfrontLinkGeneratorController

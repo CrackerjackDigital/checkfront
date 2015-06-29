@@ -1,0 +1,61 @@
+---
+Name: app-checkfront-config
+# SETTINGS FOR TEST/LIVE SITES.
+# CHECKFRONT_USE_DEV constant is defined for 'dev' mode servers,
+# CHECKFRONT_USE_TEST and CHECKFRONT_USE_LIVE on 'test' and 'live' servers respectively
+Only:
+  constantdefined: CHECKFRONT_USE_DEV
+# 'dev' checkfront account and configuration settings
+---
+CheckfrontModule:
+  endpoints:
+    public: 'book'          # set to the url of the public booking page
+  package_category_id: 6    # category id for 'packages' in checkfront
+CheckfrontAPIConfig:
+  host: dev-account.checkfront.com
+  account_id: 'off'
+CheckfrontAPITokenAuthenticator:
+  api_key: ''               # set to your api key from checkfront
+  api_secret: ''            # set to your secret from checkfront
+---
+Except:
+  constantdefined: CHECKFRONT_USE_TEST
+# 'test' checkfront account and configuration settings
+---
+CheckfrontModule:
+  endpoints:
+    public: 'book'
+  package_category_id: 5
+CheckfrontAPIConfig:
+  host: test-account.checkfront.com
+  account_id: 'off'
+CheckfrontAPITokenAuthenticator:
+  api_key: ''
+  api_secret: ''
+---
+Except:
+  constantdefined: CHECKFRONT_USE_LIVE
+# 'live' checkfront account and configuration settings
+---
+CheckfrontModule:
+  endpoints:
+    public: 'book'
+  package_category_id: 5
+CheckfrontAPIConfig:
+  host: live-account.checkfront.com
+  account_id: 'off'
+CheckfrontAPITokenAuthenticator:
+  api_key: ''
+  api_secret: ''
+---
+Name: app-checkfront-extensions
+# These extensions govern what methods are available to talk to api, e.g. 'listPackages'
+---
+# uncomment extensions you will be using to talk with checkfront api
+# there should be no harm uncommenting all at the start.
+#CheckfrontAPIFacade:
+#  extensions:
+#    - CheckfrontAPIItemsEndpoint
+#    - CheckfrontAPIPackagesEndpoint
+#    - CheckfrontAPIBookingFormEndpoint
+#    - CheckfrontAPIBookingEndpoint

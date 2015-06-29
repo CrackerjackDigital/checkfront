@@ -8,4 +8,8 @@ class CheckfrontPackageController extends ContentController {
         'CheckfrontPackageControllerExtension'
     );
 
+    private static $allowed_actions = array(
+        'index' => true
+    );
+
 }

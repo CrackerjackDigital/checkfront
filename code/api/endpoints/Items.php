@@ -26,10 +26,10 @@ class CheckfrontAPIItemsEndpoint extends CheckfrontAPIEndpoint {
      */
     public function listItems($startDate = 'today', $numDays = CheckfrontModule::DefaultAvailabilityNumDays, array $filters = array()) {
         $query = array_merge(
-            [
+            array(
                 "start_date" => CheckfrontModule::checkfront_date($startDate),
                 "end_date" => CheckfrontModule::checkfront_date($numDays)
-            ],
+            ),
             $filters
         );
         return CheckfrontAPIItemsResponse::create($this()->api(
@@ -52,9 +52,9 @@ class CheckfrontAPIItemsEndpoint extends CheckfrontAPIEndpoint {
     public function fetchItem($itemID, $startDate = null, $endDate = null, array $filters = array()) {
         $params = self::request_params(
             __FUNCTION__,
-            [
+            array(
                 'item_id' => $itemID
-            ],
+            ),
             $this->buildDates($startDate, $endDate),
             $filters
 
@@ -75,9 +75,9 @@ class CheckfrontAPIItemsEndpoint extends CheckfrontAPIEndpoint {
      */
     public function addItemToSession(CheckfrontItemModel $item, array $addOrUpdateParams = array()) {
         $params = array_merge(
-            [
+            array(
                 'session_id' => CheckfrontModule::session()->getID()
-            ],
+            ),
             $item->toCheckfront('booking/session'),
             $addOrUpdateParams
         );

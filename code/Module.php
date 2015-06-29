@@ -16,6 +16,8 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const TokenItemIDIndex = 0;
     const TokenStartDateIndex = 1;
     const TokenEndDateIndex = 2;
+    const TokenLinkTypeIndex = 3;
+    const TokenUserTypeIndex = 4;
 
     private static $payment_method_test = array(
         'DummyMerchantHosted' => 'Test'
@@ -109,7 +111,12 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
         if (empty($endpoints['public'])) {
 
             if (!$page = CheckfrontBookingPage::get()->first()) {
-                throw new Exception("Need a public endpoint to be set in config or a published CheckfrontBookingPage atm");
+
+                $implementors = ClassInfo::implementorsOf('CheckfrontPageExtension');
+                if (!$implementors) {
+                    throw new Exception("Need a public endpoint to be set in config or a published CheckfrontBookingPage atm");
+                }
+
             }
             $endpoints['public'] = $page->Link();
         }

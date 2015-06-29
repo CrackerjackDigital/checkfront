@@ -1,23 +1,32 @@
 <?php
+
 /**
  * A package oriented controller extension which can be added to a Page_Controller to provide
  * checkfont package booking functionality.
- *
  * Expects an item ID on the incoming request which points to a Package in Checkfront. Uses http request
  * mode GET/POST to figure out what action to perform.
  */
 class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension {
-    const FormName = 'CheckfrontBookingForm';
+    const FormName          = 'CheckfrontForm';
     const PackageSessionKey = 'package';
-    const PackageIDKey = 'package-id';
-    const FormSessionKey = 'form';
-    const TokenParam = 'Token';     // NB keep in sync with the url_handlers.
+    const PackageIDKey      = 'package-id';
+    const FormSessionKey    = 'form';
+    const TokenParam        = 'Token';
 
     private static $allowed_actions = array(
         'index' => true
     );
 
     private static $form_name = self::FormName;
+
+    private static $exclude_user_type_items = array(
+        'individual' => array(
+            'categories' => array(
+                'Equipment' => 2,
+                'Venue'     => 3
+            )
+        )
+    );
 
     public static function get_extra_config($class, $extension, $args) {
         return array(
@@ -64,7 +73,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                     // process BookingForm submission
                     return $this->book($request);
                 }
-            } else {
+            } elseif ($request->param(CheckfrontPackageControllerExtension::TokenParam)) {
 
                 // on GET show the access key form (the post actions will show the other forms of the flow).
                 return $this->showAccessKeyForm($request);
@@ -73,6 +82,8 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             // bad token
             return $this()->httpError(500, $e->getMessage());
         }
+
+        return array();
     }
 
     /**
@@ -103,27 +114,34 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
                 if ($token = $request->param(self::TokenParam)) {
 
-                    // we strip out the access key from the static variable cached values as it won't be used again
+                    $detokenised = CheckfrontModule::crypto()->decrypt_token($token, $accessKey);
+
+                    // cache the token for retrieval later
                     CheckfrontModule::session()->setToken(
-                        CheckfrontModule::crypto()->decrypt_token($token, $accessKey)
+                        $detokenised
                     );
 
-            } else {
+                } else {
 
                     throw new Exception("No token");
                 }
-
             }
         };
-        if (!is_null($which)) {
-            if (!array_key_exists($which, $detokenised)) {
-                throw new Exception("Bad which '$which'");
+
+        if ($detokenised) {
+
+            if (!is_null($which)) {
+                if (!array_key_exists($which, $detokenised)) {
+                    throw new Exception("Bad which '$which'");
+                }
+                if (empty($detokenised[$which])) {
+                    throw new Exception("No which '$which'");
+                }
+
+                return $detokenised[$which];
             }
-            if (empty($detokenised[$which])) {
-                throw new Exception("No which '$which'");
-            }
-            return $detokenised[$which];
         }
+
         return $detokenised;
     }
 
@@ -131,7 +149,6 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * Check if we already have a checkfront session. If not then create one with the package
      * identified on the request url as Token. The existance of the session implies the package
      * has already been added so doesn't re-add.
-     *
      * NB: the AccessKey entered on the 'showAccessKey' form should be
      */
     protected function showBookingForm(SS_HTTPRequest $request) {
@@ -148,8 +165,11 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             CheckfrontModule::crypto()->encrypt('somethingrandomheredontcarewhat', $accessKey);
         } catch (CryptofierException $e) {
             Session::setFormMessage('', 'Invalid access key', 'bad');
+
             return $this()->redirectBack();
         }
+
+        $tokenInfo = $this->getTokenInfo(null, $accessKey);
 
         $session = CheckfrontModule::session();
 
@@ -182,16 +202,20 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
                 }
             }
+
         }
 
         $form = $this->buildPackageBookingForm(
-            $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex),
-            $this->getTokenInfo(CheckfrontModule::TokenStartDateIndex),
-            $this->getTokenInfo(CheckfrontModule::TokenEndDateIndex)
+            $accessKey,
+            $tokenInfo[CheckfrontModule::TokenItemIDIndex],
+            $tokenInfo[CheckfrontModule::TokenStartDateIndex],
+            $tokenInfo[CheckfrontModule::TokenEndDateIndex],
+            $tokenInfo[CheckfrontModule::TokenLinkTypeIndex],
+            $tokenInfo[CheckfrontModule::TokenUserTypeIndex]
         );
 
         return array(
-            'Package' => $package,
+            'Package'        => $package,
             'CheckfrontForm' => $form
         );
     }
@@ -216,6 +240,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * -    call the 'book' endpoint to make the booking
      *
      * @param SS_HTTPRequest $request
+     *
      * @return CheckfrontForm
      */
     protected function book(SS_HTTPRequest $request) {
@@ -227,7 +252,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         if ($request->isPOST()) {
 
             $startDate = $request->postVar('StartDate');
-            $endDate = $request->postVar('EndDate');
+            $endDate   = $request->postVar('EndDate');
 
             $ratedPackageResponse = $this->api()->fetchPackage(
                 $packageID,
@@ -263,19 +288,26 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                 $booking = CheckfrontBookingModel::create()
                     ->fromCheckfront($postVars, 'from-form');
 
-                $this->api()->makeBooking($booking);
+//                $response = $this->api()->makeBooking($booking);
+//                $this->api()->clearSession();
 
-                $this->api()->clearSession();
+                if (true /*!$response->isValid() */) {
+                    Session::setFormMessage(self::FormName, 'No way hose', 'bad');
+
+                    return $this->showBookingForm($request);
+                }
             }
         }
+
+        return array(
+            'Message' => 'Thanks for booking, you will receive email confirmation shortly'
+        );
     }
 
 
     /**
      * Returns a simple form where user can enter the access key they have been provided.
-     *
      * Form will post back to the request url.
-     *
      * @return CheckfrontAccessKeyForm
      */
     private function buildAccessKeyForm() {
@@ -286,22 +318,25 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             new FieldList()
         );
         $form->setFormAction('/' . $this()->getRequest()->getURL());
+
         return $form;
     }
 
     /**
      * Returns a form suitable for booking a package.
-     *
      * Form will post back to the request url.
      *
+     * @param $accessKey
      * @param $packageID
      * @param $startDate
      * @param $endDate
      *
      * @return CheckfrontForm
      */
-    private function buildPackageBookingForm($packageID, $startDate, $endDate) {
-        $fields = new FieldList();
+    private function buildPackageBookingForm($accessKey, $packageID, $startDate, $endDate, $linkType, $userType) {
+        $fields = new FieldList(array(
+            new HiddenField(CheckfrontAccessKeyForm::AccessKeyFieldName, '', $accessKey)
+        ));
 
         if ($packageResponse = $this->api()->fetchPackage($packageID, $startDate, $endDate)) {
 
@@ -310,7 +345,9 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                 // add the package items to the field list which will make the form as fields
                 /** @var CheckfrontModel $item */
                 foreach ($packageResponse->getPackageItems() as $item) {
-                    $fields->merge($item->fieldsForForm('form'));
+                    if ($this->shouldShowItem($item, $linkType, $userType)) {
+                        $fields->merge($item->fieldsForForm('form'));
+                    }
                 }
 
             }
@@ -322,7 +359,49 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             new FieldList()
         );
         $form->setFormAction('/' . $this()->getRequest()->getURL());
+
         return $form;
+    }
+
+    /**
+     * Applies rules to determine if an item should be added to the form depending on the item
+     * properties and the booking preset link and item types. Returns false if:
+     *
+     * -    item CategoryID is in config.exclude_user_type_items.userType.categories
+     *
+     * Otherwise returns true
+     *
+     * @param $item
+     * @param $linkType
+     * @param $userType
+     *
+     * @return bool
+     */
+    private function shouldShowItem($item, $linkType, $userType) {
+        $userTypes = self::get_config_setting('exclude_user_type_items');
+
+        // exclude by item category
+        if (isset($userTypes[$userType]['categories'])) {
+            return !in_array($item->CategoryID, $userTypes[$userType]['categories']);
+        }
+        return true;
+    }
+
+    /**
+     * Return config.name or config.name[key] if key provided and config.name is an array.
+     *
+     * @param $name
+     * @param string|null $key
+     *
+     * @return mixed
+     */
+    protected static function get_config_setting($name, $key = null) {
+        $value = Config::inst()->get(get_called_class(), $name);
+        if ($key && is_array($value) && array_key_exists($key, $value)) {
+            return $value[$key];
+        }
+
+        return $value;
     }
 
 }

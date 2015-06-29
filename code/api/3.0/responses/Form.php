@@ -11,14 +11,16 @@ class CheckfrontAPIFormResponse extends CheckfrontAPIResponse {
     }
 
     /**
-     * @param array $infoFields - fields which aren't directly form fields are added here
      * @param array $required - fields which are mandatory are added here
+     * @param array $infoFields - fields which aren't directly form fields are added here
+     *
      * @return FieldList - list of FormFields (may be empty)
      */
-    public function getFormFields(array &$infoFields = array(), array &$required = array()) {
+    public function getFormFields(array &$required = array(), array &$infoFields = array()) {
         $fields = array();
+
         if ($this->isValid()) {
-            $notFormFields = $this->config()->get('not_form_fields') ?: [];
+            $notFormFields = $this->config()->get('not_form_fields') ?: array();
 
             foreach ($this->getCheckfrontFieldDefinitions() as $fieldName => $definition) {
                 // check if field is an info field (not a form field)

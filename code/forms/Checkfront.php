@@ -7,8 +7,10 @@ class CheckfrontForm extends Form {
     const PackageIDFieldName = 'PackageID';
     const StartDateFieldName = 'StartDate';
     const EndDateFieldName = 'EndDate';
+    const LinkTypeFieldName = 'LinkType';
+    const UserTypeFieldName = 'UserType';
+
     const AccessKeyFieldName = 'AccessKey';
-    const TypeFieldName = 'Type';
 
     private static $date_field_config = array(
         'showcalendar' => true,

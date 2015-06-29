@@ -24,14 +24,16 @@ class CheckfrontBookingForm extends CheckfrontForm {
         if ($response = CheckfrontModule::api()->fetchBookingForm()) {
             if ($response->isValid()) {
 
+                $required = array();
+
                 // now add the booking fields to the fieldlist for the form
-                $bookingFields = $response->getFormFields();
+                $bookingFields = $response->getFormFields($required);
 
                 $fields->merge(
                     $bookingFields
                 );
 
-                $paymentFields = CheckfrontPaymentForm::all_payment_method_fields();
+                $paymentFields = CheckfrontPaymentForm::all_payment_method_fields($required);
 
                 $fields->merge(
                     $paymentFields

@@ -4,9 +4,6 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
     const FormName = 'CheckfrontLinkGeneratorForm';
     const SubmitButtonName = 'generate';
 
-    const LinkTypeFieldName = 'LinkType';
-    const UserTypeFieldName = 'UserType';
-
     private static $allowed_actions = array(
         'generate' =>  true
     );
@@ -38,12 +35,12 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
 
         $endpoints = CheckfrontModule::endpoints();
 
-        $types = array(
+        $linkTypes = array(
             $endpoints['public'] => 'public',
             $endpoints['private'] => 'private'
         );
 
-        $filter = array(
+        $userTypes = array(
             'organisation' => 'organisation',
             'individual' => 'individual'
         );
@@ -56,12 +53,12 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
                 new DropdownField(
                     self::LinkTypeFieldName,
                     _t(__CLASS__ . '.LinkTypeFieldLabel', 'Link type'),
-                    $types
+                    $linkTypes
                 ),
                 new DropdownField(
                     self::UserTypeFieldName,
                     _t(__CLASS__ . '.UserTypeFieldLabel', 'User type'),
-                    $types
+                    $userTypes
                 )
             ))
         );

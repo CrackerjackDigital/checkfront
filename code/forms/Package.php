@@ -32,12 +32,6 @@ class CheckfrontBookingForm extends CheckfrontForm {
                 $fields->merge(
                     $bookingFields
                 );
-
-                $paymentFields = CheckfrontPaymentForm::all_payment_method_fields($required);
-
-                $fields->merge(
-                    $paymentFields
-                );
             }
             $actions->push(
                 new FormAction(static::SubmitButtonName, _t(__CLASS__ . ".SubmitButtonText"))

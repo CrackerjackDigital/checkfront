@@ -19,4 +19,9 @@ class CheckfrontControllerExtension extends SiteTreeExtension {
     protected function api() {
         return $this->api;
     }
+
+    public function onBeforeInit() {
+        Requirements::javascript(THIRDPARTY_DIR . '/jquery/jquery.min.js');
+    }
+
 }

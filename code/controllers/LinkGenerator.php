@@ -74,10 +74,12 @@ class CheckfrontLinkGeneratorController extends ContentController {
 
         $link = $this->makeLink(
             $accessKey,
-            $postVars[CheckfrontLinkGeneratorForm::TypeFieldName],
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
             $postVars[CheckfrontLinkGeneratorForm::StartDateFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::EndDateFieldName]
+            $postVars[CheckfrontLinkGeneratorForm::EndDateFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::UserTypeFieldName]
+
         );
 
         $form = $this->buildLinkGeneratorForm();
@@ -98,24 +100,24 @@ class CheckfrontLinkGeneratorController extends ContentController {
      * Returns link to booking on the site
      *
      * @param $accessKey    - from Cryptofier.generate_key
-     * @param $typeEndPoint - e.g 'public' or 'private'
      * @param $itemID
      * @param $startDate
      * @param $endDate
+     * @param $linkType - e.g 'public' or 'private'
+     * @param $userType - e.g 'organisation' or 'individual'
      *
-     * @internal param $array - [ItemID, StartDate, EndDate]
-     * @internal param array $parameters - e.g. from postVars
      * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
-    protected static function makeLink($accessKey, $typeEndPoint, $itemID, $startDate, $endDate) {
+    protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType) {
         return Controller::join_links(
             Director::absoluteBaseURL(),
-            $typeEndPoint,
+            $linkType,
             CheckfrontModule::crypto()->encrypt_token(array(
                     $itemID,
                     $startDate,
                     $endDate,
-                    $typeEndPoint
+                    $linkType,
+                    $userType
                 ),
                 $accessKey
             )

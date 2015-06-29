@@ -7,4 +7,5 @@ class CheckfrontPackageController extends ContentController {
     private static $extensions = array(
         'CheckfrontPackageControllerExtension'
     );
+
 }

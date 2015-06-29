@@ -17,12 +17,17 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const TokenStartDateIndex = 1;
     const TokenEndDateIndex = 2;
 
+    private static $payment_method_test = array(
+        'DummyMerchantHosted' => 'Test'
+    );
+
     /** @var  string override the installed path of checkfront module */
     private static $module_path;
 
     /** @var string patch seperator used for traverse  */
     private static $path_seperator = '.';
 
+    /** @var string set in config the category_id of 'packages' in checkfront */
     private static $package_category_id = '';
 
     // we also need to set the 'public' endpoint which is link of the CheckfrontBookingPage
@@ -74,6 +79,19 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      */
     public static function crypto() {
         return Injector::inst()->get('CryptofierService');
+    }
+
+    /**
+     * Returns array of current payment method(s) configured in PaymentProcessor.get_supported_methods().
+     * Array is map of:
+     *
+     *  PaymentMethod => Title
+     *
+     * @return array of payment methods as map of [Method => Method] suitable for use in e.g. dropdown.
+     */
+    public static function payment_methods() {
+        $configuredMethods = PaymentProcessor::get_supported_methods();
+        return array_combine($configuredMethods, $configuredMethods);
     }
 
     /**

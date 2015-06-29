@@ -27,14 +27,14 @@ abstract class CheckfrontAPIEndpoint extends Extension {
 
     public function buildDates($startDate, $endDate) {
         $numDays = static::get_config_setting('default_num_days');
-        return [
+        return array(
             'start_date' => CheckfrontModule::checkfront_date(
                     $startDate ?: static::get_config_setting('default_start_date')
                 ),
             'end_date' => CheckfrontModule::checkfront_date(
                     $endDate ?: (static::get_config_setting('default_end_date') ?: "$startDate +$numDays day")
                 )
-        ];
+        );
     }
     /**
      * Return merged config.request_params[$forCall] and any further parameters passed as

@@ -4,6 +4,9 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
     const FormName = 'CheckfrontLinkGeneratorForm';
     const SubmitButtonName = 'generate';
 
+    const LinkTypeFieldName = 'LinkType';
+    const UserTypeFieldName = 'UserType';
+
     private static $allowed_actions = array(
         'generate' =>  true
     );
@@ -40,14 +43,24 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
             $endpoints['private'] => 'private'
         );
 
+        $filter = array(
+            'organisation' => 'organisation',
+            'individual' => 'individual'
+        );
+
         $fields->merge(
             new FieldList(array(
                 $this->makePackageSelectorField($request),
                 $this->makeDateField($request, self::StartDateFieldName, $startDate),
                 $this->makeDateField($request, self::EndDateFieldName, $endDate),
                 new DropdownField(
-                    self::TypeFieldName,
-                    _t(__CLASS__ . '.TypeFieldLabel'),
+                    self::LinkTypeFieldName,
+                    _t(__CLASS__ . '.LinkTypeFieldLabel', 'Link type'),
+                    $types
+                ),
+                new DropdownField(
+                    self::UserTypeFieldName,
+                    _t(__CLASS__ . '.UserTypeFieldLabel', 'User type'),
                     $types
                 )
             ))

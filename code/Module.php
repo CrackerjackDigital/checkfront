@@ -9,7 +9,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const DefaultEndDate = '+2 year';
     const DefaultAvailabilityNumDays = 731;
 
-    const PrivateEndPoint = 'checkfront/book';
+    const PrivateEndPoint = 'package/book';
     const LinkGeneratorEndPoint = 'checkfront/link-generator';
 
     // index of ItemID (e.g. package ID) in decrypted token array
@@ -18,6 +18,12 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const TokenEndDateIndex = 2;
     const TokenLinkTypeIndex = 3;
     const TokenUserTypeIndex = 4;
+    const TokenPaymentTypeIndex = 5;
+
+    // internal payment method options govern where the user goes after booking
+    const PaymentPayNow = 'pay-now';
+    const PaymentPayLater = 'pay-later';
+
 
     /** @var  string override the installed path of checkfront module */
     private static $module_path;
@@ -80,16 +86,20 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     }
 
     /**
-     * Returns array of current payment method(s) configured in PaymentProcessor.get_supported_methods().
+     * Returns array of current payment method(s).
      * Array is map of:
      *
      *  PaymentMethod => Title
      *
+     * NB: this would be a hook for integrating e.g. payment module via PaymentProcessor.get_supported_methods();
+     *
      * @return array of payment methods as map of [Method => Method] suitable for use in e.g. dropdown.
      */
     public static function payment_methods() {
-        $configuredMethods = PaymentProcessor::get_supported_methods();
-        return array_combine($configuredMethods, $configuredMethods);
+        return array(
+            CheckfrontModule::PaymentPayNow => 'Pay now',
+            CheckfrontModule::PaymentPayLater => 'Pay later'
+        );
     }
 
     /**

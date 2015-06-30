@@ -1,7 +1,7 @@
 <?php
 
 class CheckfrontBookingForm extends CheckfrontForm {
-    const FormName = 'CheckfrontBookingForm';
+    const FormName = 'CheckfrontForm';
     const SubmitButtonName = 'book';
 
     /**
@@ -20,11 +20,11 @@ class CheckfrontBookingForm extends CheckfrontForm {
         $fields = $fields ?: new FieldList();
         $actions = $actions ?: new FieldList();
 
+        $required = array();
+
         // add the standard 'booking' fields (name etc)
         if ($response = CheckfrontModule::api()->fetchBookingForm()) {
             if ($response->isValid()) {
-
-                $required = array();
 
                 // now add the booking fields to the fieldlist for the form
                 $bookingFields = $response->getFormFields($required);
@@ -37,11 +37,14 @@ class CheckfrontBookingForm extends CheckfrontForm {
                 new FormAction(static::SubmitButtonName, _t(__CLASS__ . ".SubmitButtonText"))
             );
         }
+        $validator = new RequiredFields($required);
+
         parent::__construct(
             $controller,
             $nameOverrideDefault ?: self::FormName,
             $fields,
-            $actions
+            $actions,
+            $validator
         );
     }
 }

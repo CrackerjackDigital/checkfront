@@ -1,7 +1,9 @@
 ---
 Name: checkfront-module-routes
+# internal routes directly to checkfront controllers not pages.
 ---
 Director:
   rules:
-    'checkfront/book': CheckfrontPackageController
+    'package/book': CheckfrontPackageController
+    'package/link-generator': CheckfrontLinkGeneratorController
     'checkfront/link-generator': CheckfrontLinkGeneratorController

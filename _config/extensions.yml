@@ -13,6 +13,10 @@ CheckfrontBookingPage_Controller:
   extensions:
     - CheckfrontPackageControllerExtension
 
+CheckfrontPackageController:
+  extensions:
+    - CheckfrontPackageControllerExtension
+
 #CheckfrontAPIFacade:     # add extensions we will be using in this app to call API with
 #  extensions:
 #    - CheckfrontAPIItemsEndpoint

@@ -17,7 +17,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
 
     public function index(SS_HTTPRequest $request) {
         if ($request->isPOST()) {
-            return $this->generate($request);
+            return $this->generateLink($request);
         } else {
             return $this->show($request);
         }
@@ -63,7 +63,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
      *
      * @return HTMLText
      */
-    protected function generate(SS_HTTPRequest $request) {
+    protected function generateLink(SS_HTTPRequest $request) {
         $postVars = $request->postVars();
 
         $package = CheckfrontModule::api()->fetchPackage(
@@ -78,8 +78,8 @@ class CheckfrontLinkGeneratorController extends ContentController {
             $postVars[CheckfrontLinkGeneratorForm::StartDateFieldName],
             $postVars[CheckfrontLinkGeneratorForm::EndDateFieldName],
             $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::UserTypeFieldName]
-
+            $postVars[CheckfrontLinkGeneratorForm::UserTypeFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
         );
 
         $form = $this->buildLinkGeneratorForm();
@@ -97,7 +97,8 @@ class CheckfrontLinkGeneratorController extends ContentController {
     }
 
     /**
-     * Returns link to booking on the site
+     * Returns link to booking on the site depending on options provided, this function
+     * binds to the parameters in the token via the number of parameters on the method.
      *
      * @param $accessKey    - from Cryptofier.generate_key
      * @param $itemID
@@ -105,10 +106,11 @@ class CheckfrontLinkGeneratorController extends ContentController {
      * @param $endDate
      * @param $linkType - e.g 'public' or 'private'
      * @param $userType - e.g 'organisation' or 'individual'
+     * @param $paymentType - e.g 'pay-now' or 'pay-later'
      *
      * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
-    protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType) {
+    protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
         return Controller::join_links(
             Director::absoluteBaseURL(),
             $linkType,
@@ -117,7 +119,8 @@ class CheckfrontLinkGeneratorController extends ContentController {
                     $startDate,
                     $endDate,
                     $linkType,
-                    $userType
+                    $userType,
+                    $paymentType
                 ),
                 $accessKey
             )

@@ -60,30 +60,38 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * @return array
      */
     public function index(SS_HTTPRequest $request) {
+        // laughed until I stopped.
+        $result = array(
+            'Message' => 'Something went wrong'
+        );
         try {
             if ($request->isPOST()) {
 
                 if ($this->isAction($request, CheckfrontAccessKeyForm::SubmitButtonName)) {
 
                     // process AccessKeyForm submission
-                    return $this->showBookingForm($request);
+                    $result = $this->buildBookingForm($request);
 
                 } elseif ($this->isAction($request, CheckfrontBookingForm::SubmitButtonName)) {
 
                     // process BookingForm submission
-                    return $this->book($request);
+                    $result = $this->book($request);
                 }
             } elseif ($request->param(CheckfrontPackageControllerExtension::TokenParam)) {
 
                 // on GET show the access key form (the post actions will show the other forms of the flow).
-                return $this->showAccessKeyForm($request);
+                $result = $this->buildAccessKeyForm($request);
             }
         } catch (Exception $e) {
-            // bad token
-            return $this()->httpError(500, $e->getMessage());
+            $result = array(
+                'Message' => $e->getMessage()
+            );
         }
 
-        return array();
+        return $this()->renderWith(
+            array('CheckfrontBookingPage', 'Page'),
+            $result
+        );
     }
 
     /**
@@ -151,7 +159,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * has already been added so doesn't re-add.
      * NB: the AccessKey entered on the 'showAccessKey' form should be
      */
-    protected function showBookingForm(SS_HTTPRequest $request) {
+    protected function buildBookingForm(SS_HTTPRequest $request) {
 
         // access key posted by AccessKeyForm is from cryptofier.generate_key via the original link generator
         $accessKey = $request->postVar(CheckfrontAccessKeyForm::AccessKeyFieldName);
@@ -221,15 +229,25 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     }
 
     /**
+    /**
+     * Returns a simple form where user can enter the access key they have been provided.
+     * Form will post back to the request url.
+     *
      * @param SS_HTTPRequest $request
      *
-     * @return array
+     * @return array - CheckfrontForm => CheckfrontAccessKeyForm instance
      */
-    protected function showAccessKeyForm(SS_HTTPRequest $request) {
+    protected function buildAccessKeyForm(SS_HTTPRequest $request) {
 
         CheckfrontModule::session()->clear(null);
 
-        $form = $this->buildAccessKeyForm();
+        $form = new CheckfrontAccessKeyForm(
+            $this->owner,
+            '',
+            new FieldList(),
+            new FieldList()
+        );
+        $form->setFormAction('/' . $this()->getRequest()->getURL());
 
         return array(
             'CheckfrontForm' => $form
@@ -250,7 +268,8 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         // only post request should route here
         $postVars = $request->postVars();
 
-        $packageID = $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex);
+        // initiall call should also
+        $packageID = $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex, $postVars[CheckfrontForm::AccessKeyFieldName]);
 
         if ($request->isPOST()) {
 
@@ -288,16 +307,18 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                         }
                     }
                 }
-                $booking = CheckfrontBookingModel::create()
-                    ->fromCheckfront($postVars, 'from-form');
+                $booking = CheckfrontBookingModel::create()->fromCheckfront($postVars, 'from-form');
 
-//                $response = $this->api()->makeBooking($booking);
-//                $this->api()->clearSession();
+                $paymentMethod = $this->getTokenInfo(CheckfrontModule::TokenPaymentTypeIndex);
+
+                if ($paymentMethod == CheckfrontModule::PaymentPayNow) {
+
+                }
 
                 if (true /*!$response->isValid() */) {
                     Session::setFormMessage(self::FormName, 'No way hose', 'bad');
 
-                    return $this->showBookingForm($request);
+                    return $this->buildBookingForm($request);
                 }
             }
         }
@@ -308,22 +329,6 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     }
 
 
-    /**
-     * Returns a simple form where user can enter the access key they have been provided.
-     * Form will post back to the request url.
-     * @return CheckfrontAccessKeyForm
-     */
-    private function buildAccessKeyForm() {
-        $form = new CheckfrontAccessKeyForm(
-            $this->owner,
-            '',
-            new FieldList(),
-            new FieldList()
-        );
-        $form->setFormAction('/' . $this()->getRequest()->getURL());
-
-        return $form;
-    }
 
     /**
      * Returns a form suitable for booking a package.
@@ -333,6 +338,8 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * @param $packageID
      * @param $startDate
      * @param $endDate
+     * @param $linkType
+     * @param $userType
      *
      * @return CheckfrontForm
      */

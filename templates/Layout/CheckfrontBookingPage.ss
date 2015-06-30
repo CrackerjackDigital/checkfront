@@ -2,5 +2,5 @@
 	<h1>
 		Booking $Package.Title
 	</h1>
-	<% include CheckfrontForm ContainerClass='booking-form'%>
+	$CheckfrontForm
 </div>

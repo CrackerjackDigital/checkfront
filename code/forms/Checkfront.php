@@ -9,6 +9,7 @@ class CheckfrontForm extends Form {
     const EndDateFieldName = 'EndDate';
     const LinkTypeFieldName = 'LinkType';
     const UserTypeFieldName = 'UserType';
+    const PaymentTypeFieldName = 'PaymentType';
 
     const AccessKeyFieldName = 'AccessKey';
 

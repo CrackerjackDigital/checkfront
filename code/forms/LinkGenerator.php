@@ -45,6 +45,11 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
             'individual' => 'individual'
         );
 
+        $paymentTypes = array(
+            'pay-now' => 'Pay now',
+            'pay-later' => 'Pay later'
+        );
+
         $fields->merge(
             new FieldList(array(
                 $this->makePackageSelectorField($request),
@@ -52,13 +57,18 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
                 $this->makeDateField($request, self::EndDateFieldName, $endDate),
                 new DropdownField(
                     self::LinkTypeFieldName,
-                    _t(__CLASS__ . '.LinkTypeFieldLabel', 'Link type'),
+                    _t(__CLASS__ . '.' . self::LinkTypeFieldName . 'Label', 'Link type'),
                     $linkTypes
                 ),
                 new DropdownField(
                     self::UserTypeFieldName,
-                    _t(__CLASS__ . '.UserTypeFieldLabel', 'User type'),
+                    _t(__CLASS__ . '.' . self::UserTypeFieldName . 'Label', 'User type'),
                     $userTypes
+                ),
+                new DropdownField(
+                    self::PaymentTypeFieldName,
+                    _t(__CLASS__ . '.' . self::PackageIDFieldName . 'Label', 'Payment type'),
+                    $paymentTypes
                 )
             ))
         );
@@ -96,8 +106,8 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
      * Logic is in the controller so call there with the incoming requesst.
      * @return mixed
      */
-    public function generate() {
-        return $this->controller->generate($this->controller->getRequest());
+    public function generate_link() {
+        return $this->controller->generate_link($this->controller->getRequest());
     }
 
 

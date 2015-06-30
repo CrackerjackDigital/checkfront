@@ -12,7 +12,7 @@ class CheckfrontAPIBookingEndpoint extends CheckfrontAPIEndpoint {
             $booking->toCheckfront('booking/create')
         );
 
-        return new CheckfrontAPIResponse($this()->api(
+        return new CheckfrontAPIBookingResponse($this()->api(
             new CheckfrontAPIRequest(
                 'booking/create',
                 $params

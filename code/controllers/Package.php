@@ -5,7 +5,7 @@
  */
 class CheckfrontPackageController extends ContentController {
     private static $allowed_actions = array(
-        'index' => true
+        'package' => true
     );
 
     /**
@@ -17,7 +17,7 @@ class CheckfrontPackageController extends ContentController {
      */
     public function index(SS_HTTPRequest $request) {
         // extension should handle this, return the first result
-        $results = $this->extend('index', $request);
+        $results = $this->extend('package', $request);
         return reset($results);
     }
 

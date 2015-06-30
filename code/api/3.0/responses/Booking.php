@@ -14,7 +14,9 @@ class CheckfrontAPIBookingResponse extends CheckfrontAPIResponse {
     {
         // TODO: Implement getCount() method.
     }
-    public function isValid() {
-
+    public function getMessage() {
+        if ($this->isError()) {
+            return CheckfrontModule::lookup_path('request.error.details', $this->data, $found);
+        }
     }
 }

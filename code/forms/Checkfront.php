@@ -48,8 +48,8 @@ class CheckfrontForm extends Form {
 
         $options = array();
 
-        $startDate = $this->makeDate($request, self::StartDateFieldName, 'min');
-        $endDate = $this->makeDate($request, self::EndDateFieldName, 'max');
+        $startDate = $this->make_date($request, self::StartDateFieldName, 'min');
+        $endDate = $this->make_date($request, self::EndDateFieldName, 'max');
 
         // list skus available via the API or get empty array if fails
         $packages = CheckfrontModule::api()->listPackages(
@@ -91,7 +91,7 @@ class CheckfrontForm extends Form {
      * @param $name
      * @return DateField
      */
-    protected function makeDateField(SS_HTTPRequest $request, $name) {
+    public static function make_date_field(SS_HTTPRequest $request, $name) {
         $dateField = new DateField(
             $name,
             _t(__CLASS__ . ".{$name}FieldLabel"),
@@ -100,10 +100,10 @@ class CheckfrontForm extends Form {
         // set the min and max dates to calculated dates not 'relative' dates as this
         // seems to break SilverStripe/jquery datefield?
         $config = array_merge(
-            $this->config()->get('date_field_config'),
+            static::config()->get('date_field_config'),
             array(
-                'min' => $this->makeDate($request, static::StartDateFieldName, 'min'),
-                'max' => $this->makeDate($request, static::EndDateFieldName, 'max'),
+                'min' => static::make_date($request, static::StartDateFieldName, 'min'),
+                'max' => static::make_date($request, static::EndDateFieldName, 'max'),
             )
         );
 
@@ -120,7 +120,7 @@ class CheckfrontForm extends Form {
      * @param $configKey
      * @return bool|string
      */
-    protected function makeDate(SS_HTTPRequest $request, $fieldName, $configKey) {
+    protected static function make_date(SS_HTTPRequest $request, $fieldName, $configKey) {
         return $request->postVar($fieldName)
             ?: date('Y-m-d', strtotime(self::get_config_setting('date_field_config', $configKey)));
     }

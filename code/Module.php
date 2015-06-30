@@ -86,6 +86,33 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     }
 
     /**
+     * Use this call through to crypto.encrypt_token to force correct parameters and order. Pass null
+     * where you don't have a parameter to pass through
+     *
+     * @param $accessKey
+     * @param $itemID
+     * @param $startDate
+     * @param $endDate
+     * @param $linkType
+     * @param $userType
+     * @param $paymentType
+     *
+     * @return string
+     */
+    public static function encrypt_token($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
+        return self::crypto()->encrypt_token(array(
+                $itemID,
+                $startDate,
+                $endDate,
+                $linkType,
+                $userType,
+                $paymentType
+            ),
+            $accessKey
+        );
+    }
+
+    /**
      * Returns array of current payment method(s).
      * Array is map of:
      *

@@ -30,8 +30,8 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
         $fields = $fields ?: new FieldList();
         $actions = $actions ?: new FieldList();
 
-        $startDate = $this->makeDate($request, self::StartDateFieldName, 'min');
-        $endDate = $this->makeDate($request, self::EndDateFieldName, 'max');
+        $startDate = $this->make_date($request, self::StartDateFieldName, 'min');
+        $endDate = $this->make_date($request, self::EndDateFieldName, 'max');
 
         $endpoints = CheckfrontModule::endpoints();
 
@@ -53,12 +53,12 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
         $fields->merge(
             new FieldList(array(
                 $this->makePackageSelectorField($request),
-                $this->makeDateField($request, self::StartDateFieldName, $startDate),
-                $this->makeDateField($request, self::EndDateFieldName, $endDate),
-                new DropdownField(
+                $this->make_date_field($request, self::StartDateFieldName, $startDate),
+                $this->make_date_field($request, self::EndDateFieldName, $endDate),
+                new HiddenField(
                     self::LinkTypeFieldName,
-                    _t(__CLASS__ . '.' . self::LinkTypeFieldName . 'Label', 'Link type'),
-                    $linkTypes
+                    '',
+                    $endpoints['private']
                 ),
                 new DropdownField(
                     self::UserTypeFieldName,

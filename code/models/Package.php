@@ -30,4 +30,27 @@ class CheckfrontPackageModel extends CheckfrontModel {
         )
     );
 
+    /**
+     * Make a link/token to this booking
+     *
+     * @param string $linkType
+     * @param string $userType
+     * @param string $paymentType
+     *
+     * @return String
+     */
+    public function Link($linkType = 'public', $userType = 'individual', $paymentType = CheckfrontModule::PaymentPayNow) {
+        return Controller::join_links(
+            CheckfrontModule::endpoints('public'),
+            CheckfrontModule::encrypt_token(
+                null,
+                $this->ItemID,
+                '',
+                '',
+                $linkType,
+                $userType,
+                $paymentType
+            )
+        );
+    }
 }

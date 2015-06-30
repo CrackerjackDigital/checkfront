@@ -5,7 +5,7 @@
  */
 class CheckfrontPackageController extends ContentController {
     private static $allowed_actions = array(
-        'package' => true
+        'index' => true
     );
 
     /**

@@ -18,7 +18,7 @@ CheckfrontAPITokenAuthenticator:
   api_key: ''               # set to your api key from checkfront
   api_secret: ''            # set to your secret from checkfront
 ---
-Except:
+Only:
   constantdefined: CHECKFRONT_USE_TEST
 # 'test' checkfront account and configuration settings
 ---
@@ -33,7 +33,7 @@ CheckfrontAPITokenAuthenticator:
   api_key: ''
   api_secret: ''
 ---
-Except:
+Only:
   constantdefined: CHECKFRONT_USE_LIVE
 # 'live' checkfront account and configuration settings
 ---
@@ -53,7 +53,7 @@ Name: app-checkfront-extensions
 ---
 # uncomment extensions you will be using to talk with checkfront api
 # there should be no harm uncommenting all at the start.
-#CheckfrontAPIFacade:
+#CheckfrontAPIBridge:
 #  extensions:
 #    - CheckfrontAPIItemsEndpoint
 #    - CheckfrontAPIPackagesEndpoint

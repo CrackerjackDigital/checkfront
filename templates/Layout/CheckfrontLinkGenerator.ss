@@ -12,20 +12,24 @@
 					<td>Type</td><t>$Posted.Type</t>
 				</tr>
 				<tr>
-					<td>Start Date</td><td>$Posted.StartDate</td>
+					<td>Organiser Event</td><td>$OrganiserEvent</td>
 				</tr>
 				<tr>
-					<td>End Date</td><td>$Posted.EndDate</td>
+					<td>Individual Event</td><td>$IndividualEvent</td>
 				</tr>
 			</table>
 			<table>
 				<tr>
-					<td>Link</td>
-					<td colspan="5"><a href="$BookingLink">$BookingLink</a></td>
-				</tr>
-				<tr>
 					<td>Access Key</td>
 					<td colspan="5">$AccessKey</td>
+				</tr>
+				<tr>
+					<td>OrganiserLink</td>
+					<td colspan="5"><a href="$OrganiserLink">$OrganiserLink</a></td>
+				</tr>
+				<tr>
+					<td>IndividualLink</td>
+					<td colspan="5"><a href="$IndividualLink">$IndividualLink</a></td>
 				</tr>
 			</table>
 		</div>

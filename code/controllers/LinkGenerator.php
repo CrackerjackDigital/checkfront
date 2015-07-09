@@ -72,13 +72,19 @@ class CheckfrontLinkGeneratorController extends ContentController {
 
         $accessKey = CheckfrontModule::crypto()->generate_key();
 
-        $link = $this->makeLink(
+        $organiserLink = $this->makeLink(
             $accessKey,
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::StartDateFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::EndDateFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::OrganiserEventFieldName],
             $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::UserTypeFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
+        );
+
+        $individualLink = $this->makeLink(
+            $accessKey,
+            $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::IndividualEventFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
             $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
         );
 
@@ -90,7 +96,8 @@ class CheckfrontLinkGeneratorController extends ContentController {
                 'Package' => $package,
                 'Posted' => $request->postVars(),
                 'AccessKey' => $accessKey,
-                'BookingLink' => $link,
+                'OrganiserLink' => $organiserLink,
+                'IndividualLink' => $individualLink,
                 'CheckfrontForm' => $form
             )
         );
@@ -100,29 +107,25 @@ class CheckfrontLinkGeneratorController extends ContentController {
      * Returns link to booking on the site depending on options provided, this function
      * binds to the parameters in the token via the number of parameters on the method.
      *
-     * @param $accessKey    - from Cryptofier.generate_key
+     * @param $accessKey   - from Cryptofier.generate_key
      * @param $itemID
-     * @param $startDate
-     * @param $endDate
-     * @param $linkType - e.g 'public' or 'private'
-     * @param $userType - e.g 'organisation' or 'individual'
+     * @param $event
+     * @param $linkType    - e.g 'public' or 'private'
      * @param $paymentType - e.g 'pay-now' or 'pay-later'
      *
+     * @internal param $userType - e.g 'organisation' or 'individual'
      * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
-    protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
+    protected static function makeLink($accessKey, $itemID, $event, $linkType, $paymentType) {
         return Controller::join_links(
             Director::absoluteBaseURL(),
             $linkType,
-            CheckfrontModule::crypto()->encrypt_token(array(
-                    $itemID,
-                    $startDate,
-                    $endDate,
-                    $linkType,
-                    $userType,
-                    $paymentType
-                ),
-                $accessKey
+            CheckfrontModule::encrypt_token(
+                $accessKey,
+                $itemID,
+                $event,
+                $linkType,
+                $paymentType
             )
         );
     }

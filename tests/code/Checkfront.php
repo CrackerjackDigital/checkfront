@@ -20,7 +20,7 @@ class CheckfrontTest extends SapphireTest {
 
 
     /**
-     * Set class configurations according to $replace parameter and passed $config:
+     * Set class configurations according to config.config, $replace parameter and optional passed $config:
      *
      *  if $replace is false then
      *      if non-empty config then merge with existing self.config (parameter values override shared)

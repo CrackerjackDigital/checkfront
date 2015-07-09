@@ -1,13 +1,8 @@
 <?php
 
 interface CheckfrontAPICacheInterface {
+    const DefaultExpireSeconds = 0;
 
-    /**
-     *
-     * @param $periodInSeconds
-     * @return CheckfrontAPICacheInterface
-     */
-    public function expire($periodInSeconds);
     /**
      * Return value from cache using name and any subsequent args as the key.
      * @param $name
@@ -17,11 +12,14 @@ interface CheckfrontAPICacheInterface {
 
     /**
      * Set value using name and subsequent arguments as the key.
-     * @param $name
+     *
      * @param $value
+     * @param $name
+     * @param int|null $expireInSeconds
+     *
      * @return CheckfrontAPICacheInterface
      */
-    public function set($value, $name);
+    public function set($value, $name, $expireInSeconds = self::DefaultExpireSeconds);
 
     /**
      * Clear cache using name and subsequent arguments as the key.

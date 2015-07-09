@@ -9,19 +9,6 @@ class CheckfrontCache extends Object implements CheckfrontAPICacheInterface {
 
     private static $cache_prefix = self::CachePrefix;
 
-    protected $expireInSeconds = null;
-
-
-    /**
-     * Set the expiry period in seconds for the next set operation. Set needs to clear this.
-     *
-     * @param $periodInSeconds
-     * @return CheckfrontAPICacheInterface
-     */
-    public function expire($periodInSeconds) {
-        $this->expireInSeconds = $periodInSeconds;
-        return $this;
-    }
     /**
      * Return decorated key using name and and extra values passed as part of key.
      *
@@ -47,14 +34,15 @@ class CheckfrontCache extends Object implements CheckfrontAPICacheInterface {
 
     /**
      * Set value using name and subsequent arguments as the key.
-     * @param $name
+     *
      * @param $value
+     * @param $name
+     * @param int|null $expireInSeconds
+     *
      * @return CheckfrontAPICacheInterface
      * @fluent
      */
-    public function set($value, $name)
-    {
-        $this->expireInSeconds = null;
+    public function set($value, $name, $expireInSeconds = self::DefaultExpireSeconds) {
         return $this;
     }
 
@@ -66,7 +54,6 @@ class CheckfrontCache extends Object implements CheckfrontAPICacheInterface {
      */
     public function clear($name)
     {
-        $this->expireInSeconds = null;
         return $this;
     }
 

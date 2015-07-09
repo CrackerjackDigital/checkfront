@@ -19,6 +19,8 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
     );
 
     /**
+     * Perform an 'item' request for the CheckfrontModule.package_category_id() category with 'packages' option set on.
+     *
      * @param null $startDate
      * @param null $endDate
      * @param array $filters
@@ -26,24 +28,35 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
      */
 
     public function listPackages($startDate = null, $endDate = null, array $filters = array()) {
-        $params = self::request_params(
-            __FUNCTION__,
-            array(
-                'category_id' => CheckfrontModule::package_category_id(),
-            ),
-            $this->buildDates($startDate, $endDate),
-            $filters
+        static $cache = array();
 
-        );
-        return CheckfrontAPIPackagesResponse::create($this()->api(
-            new CheckfrontAPIRequest(
-                "item",
-                $params
-            )
-        ));
+        $cacheKey = md5(implode('|', array($startDate, $endDate, implode('|', $filters))));
+
+        if (!isset($cache[$cacheKey])) {
+            $params = self::request_params(
+                __FUNCTION__,
+                array(
+                    'category_id' => CheckfrontModule::package_category_id(),
+                    'packages' => 1
+                ),
+                $this->buildDates($startDate, $endDate),
+                $filters
+
+            );
+            $cache[$cacheKey] = CheckfrontAPIPackagesResponse::create($this()->api(
+                new CheckfrontAPIRequest(
+                    "item",
+                    $params
+                )
+            ));
+        }
+        return $cache[$cacheKey];
     }
 
     /**
+     *
+     * Perform an 'item' request for the package item with 'packages' option set on.
+     *
      * @param $checkfrontID
      * @param null|string $startDate
      * @param null|string $endDate
@@ -51,21 +64,30 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
      * @return CheckfrontAPIPackageResponse
      */
     public function fetchPackage($checkfrontID, $startDate = null, $endDate = null, array $filters = array()) {
-        $params = self::request_params(
-            __FUNCTION__,
-            array(
-                'category_id' => CheckfrontModule::package_category_id()
-            ),
-            $this->buildDates($startDate, $endDate),
-            $filters
+        static $cache = array();
 
-        );
-        return CheckfrontAPIPackageResponse::create($this()->api(
-            new CheckfrontAPIRequest(
-                "item/$checkfrontID",
-                $params
-            )
-        ));
+        $cacheKey = md5(implode('|', array($checkfrontID, $startDate, $endDate, implode('|', $filters))));
+
+        if (!isset($cache[$cacheKey])) {
+
+            $params = self::request_params(
+                __FUNCTION__,
+                array(
+                    'category_id' => CheckfrontModule::package_category_id(),
+                    'packages' => 1
+                ),
+                $this->buildDates($startDate, $endDate),
+                $filters
+
+            );
+            $cache[$cacheKey] = CheckfrontAPIPackageResponse::create($this()->api(
+                new CheckfrontAPIRequest(
+                    "item/$checkfrontID",
+                    $params
+                )
+            ));
+        }
+        return $cache[$cacheKey];
     }
 
     /**

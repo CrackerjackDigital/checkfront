@@ -6,3 +6,4 @@ CheckfrontModule:
 
 CheckfrontAPIPackageResponse:
   package_items_path: 'item.product_group_children';
+

@@ -27,6 +27,9 @@ class CheckfrontPackageModel extends CheckfrontModel {
         ),
         'booking/session' => array(
             'RateSlip' => 'slip'
+        ),
+        'events' => array(
+
         )
     );
 
@@ -39,6 +42,7 @@ class CheckfrontPackageModel extends CheckfrontModel {
      *
      * @return String
      */
+/*
     public function Link($linkType = 'public', $userType = 'individual', $paymentType = CheckfrontModule::PaymentPayNow) {
         return Controller::join_links(
             CheckfrontModule::endpoints('public'),
@@ -53,4 +57,5 @@ class CheckfrontPackageModel extends CheckfrontModel {
             )
         );
     }
+*/
 }

@@ -11,8 +11,8 @@ class CheckfrontAPIPackagesResponse extends CheckfrontAPIResponse {
         if ($this->isValid()) {
             return new ArrayList(
                 array_map(
-                    function($item) {
-                        return CheckfrontPackageModel::create()->fromCheckfront($item);
+                    function($itemData) {
+                        return CheckfrontPackageModel::create_from_checkfront($itemData);
                     },
                     $this['items']
                 )

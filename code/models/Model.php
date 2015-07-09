@@ -6,6 +6,9 @@ class CheckfrontModel extends DataObject {
 
     private static $db = array();
 
+    // cache the original creation data so we can later e.g. subquery it in models which don't persist to the DB.
+    protected $api_data = array();
+
     /**
      * Checkfront map maps between paths and a flat structure with different actions as key. glob type wildcards
      * can be used to map an 'action' to a field/path map.
@@ -58,6 +61,9 @@ class CheckfrontModel extends DataObject {
      * @fluent
      */
     public function fromCheckfront(array $data, $forAction = self::DefaultAction, $updateNulls = true) {
+        // cache the raw data so we can later re-query it if e.g we are not persisting relationships etc to a database
+        $this->api_data = $data;
+
         if ($map = $this->checkfront_map($forAction)) {
             CheckfrontModule::map_to_model($data, $map, $this, $updateNulls);
         }

@@ -11,6 +11,14 @@ class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
     }
 
     /**
+     * Get the events for this package.
+     * @return array
+     */
+    public function getEvents() {
+        return isset($this->data['events']) ? $this->data['events'] : array();
+    }
+
+    /**
      * Gets the package items using config.package_item_path as index into data and
      * return a list of CheckfrontItemModels.
      *

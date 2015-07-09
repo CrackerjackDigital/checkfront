@@ -3,7 +3,7 @@
  * API Facade calls through to implementation, adds DataObject style interface.
  */
 
-class CheckfrontAPIFacade extends Object implements CheckfrontAPIInterface {
+class CheckfrontAPIBridge extends Object implements CheckfrontAPIInterface {
 
     /** @var CheckfrontAPIImplementation set by injector in checkfront module config.yml */
     private $implementation;

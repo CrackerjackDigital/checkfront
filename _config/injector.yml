@@ -1,17 +1,18 @@
 Injector:
   CheckfrontAPI:
-    class: CheckfrontAPIFacade
+    class: CheckfrontCachingAPIBridge
     properties:
       implementation: %$CheckfrontAPIImplementation
+  CheckfrontAPICache: CheckfrontCacheSession
+  CheckfrontAPIConfig: CheckfrontAPIConfig
   CheckfrontAPIImplementation:
     factory: CheckfrontAPIImplementationFactory
-  CheckfrontConfig: CheckfrontAPIConfig
   CheckfrontAuthenticator: CheckfrontAPITokenAuthenticator
-  CheckfrontResponse: CheckfrontAPIResponse
+  CheckfrontCache: CheckfrontCacheNull
+  CheckfrontCryptoService: CryptofierModule
   CheckfrontErrorResponse: CheckfrontAPIErrorResponse
   CheckfrontFormResponse: CheckfrontAPIFormResponse
   CheckfrontPackageResponse: CheckfrontAPIPackageResponse
-  CheckfrontAuthenticator: CheckfrontAPITokenAuthenticator    # default
-  CheckfrontCache: CheckfrontCacheNull
+  CheckfrontResponse: CheckfrontAPIResponse
   CheckfrontSession: CheckfrontSession
 

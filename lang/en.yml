@@ -7,9 +7,14 @@ en:
     AccessKeyFieldLabel: 'Enter your access key'
   CheckfrontLinkGeneratorForm:
     TypeFieldLabel: 'Package type'
+    OrganiserEventFieldLabel: 'Organiser Event'
+    OrganiserEventFieldEmptyString: 'Select Organiser Event'
+    IndividualEventFieldLabel: 'Individual Event'
+    IndividualEventFieldEmptyString: 'Select Individual Event'
     SubmitButtonText: 'generate'
   CheckfrontBookingForm:
     SubmitButtonText: 'book'
   CheckfrontAccessKeyForm:
     SubmitButtonText: 'verify'
+
 

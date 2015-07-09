@@ -14,7 +14,8 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     const TokenParam        = 'Token';
 
     private static $allowed_actions = array(
-        'index' => true
+        'index' => true,
+        'index/$Token!' => true
     );
 
     private static $url_handlers = array(
@@ -114,15 +115,22 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         );
     }
 
+    /**
+     * Check if the current rendered page is a 'public' page using the CheckfrontModule.endpoints() result as the
+     * dictionary.
+     *
+     * @return bool
+     */
     protected function isPublic() {
         /** @var ContentController $controller */
         $controller = $this();
         $url = $controller->getRequest()->param('URLSegment');
         if ($url) {
-            return $url == CheckfrontModule::endpoints('public');
+            return in_array($url, CheckfrontModule::endpoints('public'));
         }
 
         return false;
+
     }
 
     /**
@@ -207,6 +215,11 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                 if ($packageResponse->isValid()) {
                     $package = $packageResponse->getPackage();
 
+                    $organiserEvent = $packageResponse->getEvent(CheckfrontModule::TokenOrganiserEventIndex);
+                    $organiserEvent = $packageResponse->getEvent(CheckfrontModule::TokenIndividualEventIndex);
+
+
+
                     $startDate = $request->postVar('StartDate') ?: date('Y-m-d', strtotime($this->getTokenInfo(CheckfrontModule::TokenStartDateIndex)));
                     $endDate = $request->postVar('EndDate') ?: date('Y-m-d', strtotime($this->getTokenInfo(CheckfrontModule::TokenEndDateIndex)));
 
@@ -221,8 +234,8 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                     // add start and end date fields
                     $fields->merge(
                         new FieldList(array(
-                            CheckfrontForm::make_date_field($request, CheckfrontForm::StartDateFieldName, $startDate),
-                            CheckfrontForm::make_date_field($request, CheckfrontForm::EndDateFieldName, $endDate)
+                            CheckfrontForm::make_date_field($request, CheckfrontForm::StartDateFieldName, $startDate, null),
+                            CheckfrontForm::make_date_field($request, CheckfrontForm::EndDateFieldName, null, $endDate)
                         ))
                     );
 

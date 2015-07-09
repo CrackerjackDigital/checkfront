@@ -4,6 +4,5 @@ Name: checkfront-module-routes
 ---
 Director:
   rules:
-    'package/book': CheckfrontPackageController
-    'package/link-generator': CheckfrontLinkGeneratorController
-    'checkfront/link-generator': CheckfrontLinkGeneratorController
+    'checkfront/package/book': CheckfrontPackageController                       # route to private booking page
+    'checkfront/package/link-generator': CheckfrontLinkGeneratorController       # route to link generator

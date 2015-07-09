@@ -4,124 +4,119 @@
  * Base class or instance for forms used in checkfront module.
  */
 class CheckfrontForm extends Form {
-    const PackageIDFieldName = 'PackageID';
-    const StartDateFieldName = 'StartDate';
-    const EndDateFieldName = 'EndDate';
-    const LinkTypeFieldName = 'LinkType';
-    const UserTypeFieldName = 'UserType';
+    const PackageIDFieldName   = 'PackageID';
+    const StartDateFieldName   = 'StartDate';
+    const EndDateFieldName     = 'EndDate';
+    const LinkTypeFieldName    = 'LinkType';
     const PaymentTypeFieldName = 'PaymentType';
+    const EventFieldPrefix     = 'Event';
 
     const AccessKeyFieldName = 'AccessKey';
 
+    // default config for date field
     private static $date_field_config = array(
-        'showcalendar' => true,
-        'datevalueformat' => 'YYYY-MM-DD',
-        'min' => CheckfrontModule::DefaultStartDate,
-        'max' => CheckfrontModule::DefaultEndDate,
+        'showcalendar'    => true,
+        'datevalueformat' => 'YYYY-MM-DD'
     );
 
+
     /**
-     * Return config.name or config.name[key] if key provided and config.name is an array.
+     * Returns localised field label using format {ClassName}.{$fieldName}Label or $fieldName if not found.
+     * e.g. 'CheckfrontLinkGeneratorForm.AccessKeyLabel'. If not found on this class then steps
+     * back through class ancestry (e.g 'CheckfrontForm') to try and find it there.
+     *
+     * @param $fieldName
+     * @param string $nameSuffix - default 'FieldLabel' but can use e.g. 'FieldEmptyString' etc
+     *
+     * @return string
+     */
+    protected function getFieldLabel($fieldName, $nameSuffix = 'FieldLabel') {
+        $className = get_class($this);
+        $label     = _t("$className.{$fieldName}{$nameSuffix}");
+        if (!$label) {
+            while ($className = get_parent_class($className)) {
+                if ($className === 'Object') {
+                    // stop at Object
+                    break;
+                }
+                if ($label = _t("$className.{$fieldName}{$nameSuffix}")) {
+                    break;
+                }
+            }
+        }
+
+        return $label ? : $fieldName;
+    }
+
+    /**
+     * Return config.name or config.name[key] if key provided and config.name is an array. If key
+     * doesn't exist in the array returns null.
      *
      * @param $name
      * @param string|null $key
+     *
      * @return mixed
      */
     protected static function get_config_setting($name, $key = null) {
-        $value = static::config()->get($name);
-        if ($key && is_array($value) && array_key_exists($key, $value)) {
-            return $value[$key];
+        $value = Config::inst()->get(get_called_class(), $name);
+
+        if ($key && is_array($value)) {
+            if (array_key_exists($key, $value)) {
+                return $value[$key];
+            } else {
+                return null;
+            }
         }
+
         return $value;
     }
 
     /**
-     * Returns a drop-down field configured from an api.listPackages call.
-     *
-     * @param SS_HTTPRequest $request
-     * @param null $initValue
-     * @return DropdownField
-     */
-
-    protected function makePackageSelectorField(SS_HTTPRequest $request, $initValue = null) {
-        $name = self::PackageIDFieldName;
-
-        $options = array();
-
-        $startDate = $this->make_date($request, self::StartDateFieldName, 'min');
-        $endDate = $this->make_date($request, self::EndDateFieldName, 'max');
-
-        // list skus available via the API or get empty array if fails
-        $packages = CheckfrontModule::api()->listPackages(
-            $startDate,
-            $endDate
-        )->getPackages();
-
-        foreach ($packages ?: array() as $package) {
-            $options[$package->ItemID] = $package->Title;
-        }
-
-        $field = new DropdownField(
-            $name,
-            _t(__CLASS__ . ".{$name}FieldLabel"),
-            $options,
-            $initValue ?: $request->postVar(self::PackageIDFieldName)
-        );
-        $field->setEmptyString(_t('CheckfrontLinkGeneratorForm.PackageIDFieldEmptyString', 'Select a package'));
-
-        return $field;
-    }
-
-
-    /**
      * Returns a text field where the access key can be entered.
-     *
      * @return TextField
      */
     protected function makeAccessKeyField() {
         $field = new TextField(
             self::AccessKeyFieldName,
-            _t(__CLASS__ . '.AccessKeyFieldLabel')
+            $this->getFieldLabel(self::AccessKeyFieldName)
         );
+
         return $field;
     }
 
     /**
-     * @param SS_HTTPRequest $request
      * @param $name
+     * @param $label
+     * @param $value
+     * @param $startDate - start date which can be selected from, defaults to CheckfrontModule.DefaultStartDate
+     * @param $endDate   - end date which can be selected to, defaults to CheckfrontModule.DefaultEndDate
+     *
+     * @internal param \SS_HTTPRequest $request
      * @return DateField
      */
-    public static function make_date_field(SS_HTTPRequest $request, $name) {
+    public function makeDateField($name, $label, $value,
+                                  $startDate = CheckfrontModule::DefaultStartDate,
+                                  $endDate = CheckfrontModule::DefaultEndDate) {
+
         $dateField = new DateField(
             $name,
-            _t(__CLASS__ . ".{$name}FieldLabel"),
-            $request->postVar($name)
+            $label ? : $this->getFieldLabel($name),
+            $value
         );
         // set the min and max dates to calculated dates not 'relative' dates as this
         // seems to break SilverStripe/jquery datefield?
         $config = array_merge(
-            static::config()->get('date_field_config'),
+            static::get_config_setting('date_field_config'),
             array(
-                'min' => static::make_date($request, static::StartDateFieldName, 'min'),
-                'max' => static::make_date($request, static::EndDateFieldName, 'max'),
+                'min' => date('Y-m-d', strtotime($startDate ? : CheckfrontModule::DefaultStartDate)),
+                'max' => date('Y-m-d', strtotime($endDate ? : CheckfrontModule::DefaultEndDate))
             )
         );
 
         foreach ($config as $option => $value) {
             $dateField->setConfig($option, $value);
         }
+
         return $dateField;
-    }
-
-
-    /**
-     * @param SS_HTTPRequest $request
-     * @param $fieldName
-     * @param $configKey
-     * @return bool|string
-     */
-    protected static function make_date(SS_HTTPRequest $request, $fieldName, $configKey) {
-        return $request->postVar($fieldName)
-            ?: date('Y-m-d', strtotime(self::get_config_setting('date_field_config', $configKey)));
     }
 }

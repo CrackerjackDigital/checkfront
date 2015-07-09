@@ -12,10 +12,30 @@ class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
 
     /**
      * Get the events for this package.
-     * @return array
+     *
+     * @return SS_List
      */
     public function getEvents() {
-        return isset($this->data['events']) ? $this->data['events'] : array();
+        $list = new ArrayList();
+        if (isset($this->data['events'])) {
+            foreach ($this->data['events'] as $event) {
+                $list->push(CheckfrontEventModel::create_from_checkfront($event));
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * Return the event with the provided ID or null if not found for the package.
+     *
+     * @param $eventID
+     *
+     * @convenience
+     *
+     * @return CheckfrontEventModel|null
+     */
+    public function getEvent($eventID) {
+        return $this->getEvents()->filter('EventID', $eventID)->first();
     }
 
     /**
@@ -47,15 +67,14 @@ class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
     /**
      * Check if the request returned what we want
      *      true if there is expected data in the response
-     *      false if there isn't (e.g. nothing found)
+     *      false if there isn't (e.g. data item not set)
      *
-     *  If returns false then getData should return null.
      *  If isError then this should return false too
      *
      * @return boolean
      */
     public function isValid()
     {
-        return isset($this->data['item']) ? true : false;
+        return isset($this->data['item']) && !$this->isError();
     }
 }

@@ -4,10 +4,17 @@ class CheckfrontModel extends DataObject {
     const FormFieldTokenDelimeter = ',';
     const DefaultAction = 'response';
 
+    const CastDate = 1;
+
     private static $db = array();
 
     // cache the original creation data so we can later e.g. subquery it in models which don't persist to the DB.
     protected $api_data = array();
+
+    private static $casting = array(
+        'start_date' => self::CastDate,
+        'end_date' => self::CastDate
+    );
 
     /**
      * Checkfront map maps between paths and a flat structure with different actions as key. glob type wildcards
@@ -65,9 +72,39 @@ class CheckfrontModel extends DataObject {
         $this->api_data = $data;
 
         if ($map = $this->checkfront_map($forAction)) {
+            $data = $this->cast($data);
             CheckfrontModule::map_to_model($data, $map, $this, $updateNulls);
         }
         return $this;
+    }
+
+    /**
+     * Iterates through config.casting and if key exist in data then applied casting rules.
+     *
+     * @param array $data
+     * @param array $casted - receives names of fields which where casted mapped to the casting types.
+     *
+     * @return array
+     * @throws Exception
+     */
+    protected function cast(array $data, array &$casted = array()) {
+        foreach ($this->config()->get('casting') as $name => $type) {
+
+            // casting may deal with null values so don't use isset()
+
+            if (array_key_exists($name, $data)) {
+
+                switch ($type) {
+                case self::CastDate:
+                    $data[$name] = CheckfrontModule::from_checkfront_date($data[$name]);
+                    $casted[$name][] = $type;
+                    break;
+                default:
+                    throw new CheckfrontException("Unknown cast type '$type'");
+                }
+            }
+        }
+        return $data;
     }
 
     /**

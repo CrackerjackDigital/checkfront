@@ -77,6 +77,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
             $postVars[CheckfrontLinkGeneratorForm::OrganiserEventFieldName],
             $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
+            CheckfrontModule::UserTypeOrganiser,
             $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
         );
 
@@ -85,6 +86,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
             $postVars[CheckfrontLinkGeneratorForm::IndividualEventFieldName],
             $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
+            CheckfrontModule::UserTypeIndividual,
             $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
         );
 
@@ -103,30 +105,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
         );
     }
 
-    /**
-     * Returns link to booking on the site depending on options provided, this function
-     * binds to the parameters in the token via the number of parameters on the method.
-     *
-     * @param $accessKey   - from Cryptofier.generate_key
-     * @param $itemID
-     * @param $event
-     * @param $linkType    - e.g 'public' or 'private'
-     * @param $paymentType - e.g 'pay-now' or 'pay-later'
-     *
-     * @internal param $userType - e.g 'organisation' or 'individual'
-     * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
-     */
-    protected static function makeLink($accessKey, $itemID, $event, $linkType, $paymentType) {
-        return Controller::join_links(
-            Director::absoluteBaseURL(),
-            $linkType,
-            CheckfrontModule::encrypt_token(
-                $accessKey,
-                $itemID,
-                $event,
-                $linkType,
-                $paymentType
-            )
-        );
+    protected static function makeLink($accessKey, $itemID, $event, $linkType, $userType, $paymentType) {
+        return CheckfrontModule::make_link($accessKey, $itemID, $event, $linkType, $userType, $paymentType);
     }
 }

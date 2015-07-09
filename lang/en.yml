@@ -16,5 +16,8 @@ en:
     SubmitButtonText: 'book'
   CheckfrontAccessKeyForm:
     SubmitButtonText: 'verify'
+  Package:
+    NoSuchPackageMessage: "Sorry, that package is no longer available"
+    NoSuchEventMessage: "Sorry, that event is no longer available"
 
 

@@ -10,6 +10,9 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const DefaultEndDate              = '+2 year';
     const DefaultAvailabilityNumDays  = 731;
     const DefaultCheckfrontDateFormat = 'Ymd';
+
+    const NullDate = null;
+
     const PrivateEndPoint             = 'package/book';
     const LinkGeneratorEndPoint       = 'checkfront/link-generator';
 
@@ -20,18 +23,25 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const CryptoServiceName        = 'CheckfrontCryptoService';
     const SessionServiceName       = 'CheckfrontSession';
 
-    const TokenItemCount = 4;
+    const TokenItemCount = 5;
 
     // index of ItemID (e.g. package ID) in decrypted token array
     const TokenItemIDIndex          = 0;
     const TokenOrganiserEventIndex  = 1;
     const TokenIndividualEventIndex = 2;
     const TokenLinkTypeIndex        = 3;
+    const TokenUserTypeIndex        = 4;
     const TokenPaymentTypeIndex     = 5;
+
+    const UserTypeOrganiser = 'organiser';
+    const UserTypeIndividual = 'individual';
 
     // internal payment method options govern where the user goes after booking
     const PaymentPayNow   = 'pay-now';
     const PaymentPayLater = 'pay-later';
+
+    const LinkTypePublic = 'public';
+    const LinkTypePrivate = 'private';
 
 
     /** @var  string override the installed path of checkfront module */
@@ -54,23 +64,23 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
         self::LinkGeneratorEndPoint => 'link-generator'
     );
     private static $user_types = array(
-        'organiser'  => 'Organiser',
-        'individual' => 'Individual'
+        self::UserTypeOrganiser  => 'Organiser',
+        self::UserTypeIndividual => 'Individual'
     );
     private static $link_types = array(
-        'private' => 'Private',
-        'public'  => 'Public'
+        self::LinkTypePublic  => 'Public',
+        self::LinkTypePrivate => 'Private',
     );
     private static $payment_types = array(
-        'pay-now'   => 'Pay now',
-        'pay-later' => 'Pay later'
+        self::PaymentPayNow   => 'Pay now',
+        self::PaymentPayLater => 'Pay later'
     );
 
     /**
      * Return instance of the API interface, which is probably an APIFacade or APIImplementation
      * NB: add endpoints which have extended the implementation to the return typehints to get better automcomplete in
      * ide's which support it.
-     * @return CheckfrontAPIFacade|CheckfrontAPIImplementation|CheckfrontAPIPackagesEndpoint|CheckfrontAPIItemsEndpoint|CheckfrontAPIBookingFormEndpoint
+     * @return CheckfrontAPIBridge|CheckfrontAPIPackagesEndpoint|CheckfrontAPIItemsEndpoint|CheckfrontAPIBookingFormEndpoint
      */
     public static function api() {
         return Injector::inst()->get(self::APIServiceName);
@@ -126,20 +136,23 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      *
      * @param $accessKey
      * @param $itemID
-     * @param $organiserEvent
-     * @param $individualEvent
+     * @param $event
      * @param $linkType
+     * @param $userType
      * @param $paymentType
      *
      * @throws CheckfrontCryptoException
+     * @internal param $organiserEvent
+     * @internal param $individualEvent
      * @return string - valid token
      */
-    public static function encrypt_token($accessKey, $itemID, $event, $linkType, $paymentType) {
+    public static function encrypt_token($accessKey, $itemID, $event, $linkType, $userType, $paymentType) {
         try {
             return self::crypto()->encrypt_token(array(
                     $itemID,
                     $event,
                     $linkType,
+                    $userType,
                     $paymentType
                 ),
                 $accessKey
@@ -170,6 +183,34 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
         } catch (Exception $e) {
             throw new CheckfrontCryptoException("Failed to decrypt token", $e->getCode(), $e);
         }
+    }
+    /**
+     * Returns link to booking on the site depending on options provided, this function
+     * binds to the parameters in the token via the number of parameters on the method.
+     *
+     * @param $accessKey   - from Cryptofier.generate_key
+     * @param $itemID
+     * @param $event
+     * @param $linkType    - e.g 'public' or 'private'
+     * @param $userType    - e.g. 'organiser' or 'individual'
+     * @param $paymentType - e.g 'pay-now' or 'pay-later'
+     *
+     * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
+     */
+
+    public static function make_link($accessKey, $itemID, $event, $linkType, $userType, $paymentType) {
+        return Controller::join_links(
+            Director::absoluteBaseURL(),
+            $linkType,
+            self::encrypt_token(
+                $accessKey,
+                $itemID,
+                $event,
+                $linkType,
+                $userType,
+                $paymentType
+            )
+        );
     }
 
 
@@ -249,7 +290,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      */
     public static function package_category_id() {
         if (!$id = static::config()->get('package_category_id')) {
-            throw new Exception("No package category id");
+            throw new CheckfrontException("No package category id");
         }
 
         return $id;
@@ -422,7 +463,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
                 // $dateOrYear is year, and month and day supplied
                 $result = date($checkfrontFormat, mktime(0, 0, 0, $month, $day, $dateOrYear));
             } else {
-                throw new Exception("Need either 1 or 3 arguments when dataOrYear is an integer");
+                throw new CheckfrontException("Need either 1 or 3 arguments when dataOrYear is an integer");
             }
 
         } elseif (3 === explode($dateOrYear, '-')) {
@@ -430,7 +471,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
             // probably formatted as YYYY-MM-DD
             $result = str_replace(array('-', '_'), '', $dateOrYear);
             if (!is_numeric($result)) {
-                throw new Exception("Invalid date passed: '$dateOrYear'");
+                throw new CheckfrontException("Invalid date passed: '$dateOrYear'");
             }
 
         } else {
@@ -438,13 +479,53 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
             // this may be something that strtotime can use e.g. 'today' or '+2 month'?
             $unixTime = strtotime($dateOrYear);
             if ($unixTime === false) {
-                throw new Exception("Invalid date passed: '$dateOrYear'");
+                throw new CheckfrontException("Invalid date passed: '$dateOrYear'");
             }
             $result = date($checkfrontFormat, $unixTime);
 
         }
 
         return $result;
+    }
+
+    /**
+     * Given a date 'YYYYMMDD' or an array with a key value in that format returns 'YYYY-MM-DD'.
+     *
+     * @param $valueOrArray
+     * @param null $key - checkfront key name, e.g. 'start_date'
+     *
+     * @return string|null
+     * @throws Exception
+     */
+    public static function from_checkfront_date($valueOrArray, $key = null) {
+        $value = CheckfrontModule::NullDate;
+
+        if ($valueOrArray) {
+            if (is_array($valueOrArray)) {
+                if ($key && isset($valueOrArray[$key])) {
+
+                    $value = $valueOrArray[$key];
+                    $year = substr($value, 0, 4);
+                    $month = substr($value, 5, 2);
+                    $day = substr($value, 7, 2);
+
+                    $value = date('Y-m-d', mktime(0, 0, 0, (int)$month, (int)$day, (int)$year));
+                } else {
+                    throw new CheckfrontException("Invalid date passed: '" . implode(',', $valueOrArray) . "'");
+                }
+            } elseif (is_numeric($valueOrArray)) {
+                $year = substr($valueOrArray, 0, 4);
+                $month = substr($valueOrArray, 5, 2);
+                $day = substr($valueOrArray, 7, 2);
+
+                $value = date('Y-m-d', mktime(0, 0, 0, (int)$month, (int)$day, (int)$year));
+            } else {
+                throw new CheckfrontException("Invalid date passed: '$valueOrArray'");
+            }
+        } else {
+            // no date is OK, just return default null date
+        }
+        return $value;
     }
 
     /**

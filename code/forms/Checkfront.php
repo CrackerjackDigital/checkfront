@@ -4,12 +4,12 @@
  * Base class or instance for forms used in checkfront module.
  */
 class CheckfrontForm extends Form {
-    const PackageIDFieldName   = 'PackageID';
-    const StartDateFieldName   = 'StartDate';
-    const EndDateFieldName     = 'EndDate';
-    const LinkTypeFieldName    = 'LinkType';
+    const PackageIDFieldName = 'PackageID';
+    const StartDateFieldName = 'StartDate';
+    const EndDateFieldName = 'EndDate';
+    const LinkTypeFieldName = 'LinkType';
     const PaymentTypeFieldName = 'PaymentType';
-    const EventFieldPrefix     = 'Event';
+    const EventFieldPrefix = 'Event';
 
     const AccessKeyFieldName = 'AccessKey';
 
@@ -45,7 +45,7 @@ class CheckfrontForm extends Form {
             }
         }
 
-        return $label ? : $fieldName;
+        return $label ?: $fieldName;
     }
 
     /**
@@ -85,8 +85,9 @@ class CheckfrontForm extends Form {
     }
 
     /**
+     * Returns a DateField configured with start, end dates.
+     *
      * @param $name
-     * @param $label
      * @param $value
      * @param $startDate - start date which can be selected from, defaults to CheckfrontModule.DefaultStartDate
      * @param $endDate   - end date which can be selected to, defaults to CheckfrontModule.DefaultEndDate
@@ -94,13 +95,33 @@ class CheckfrontForm extends Form {
      * @internal param \SS_HTTPRequest $request
      * @return DateField
      */
-    public function makeDateField($name, $label, $value,
+    public function makeDateField($name, $value,
                                   $startDate = CheckfrontModule::DefaultStartDate,
                                   $endDate = CheckfrontModule::DefaultEndDate) {
 
+        $label = $this->getFieldLabel($name);
+
+        return self::make_date_field($name, $label, $value, $startDate, $endDate);
+    }
+
+    /**
+     * Returns a DateField configured with start, end dates.
+     *
+     * @param $name
+     * @param $value
+     * @param $label
+     * @param $startDate - start date which can be selected from, defaults to CheckfrontModule.DefaultStartDate
+     * @param $endDate   - end date which can be selected to, defaults to CheckfrontModule.DefaultEndDate
+     *
+     * @return DateField
+     */
+    public static function make_date_field($name, $label, $value,
+                                           $startDate = CheckfrontModule::DefaultStartDate,
+                                           $endDate = CheckfrontModule::DefaultEndDate) {
+
         $dateField = new DateField(
             $name,
-            $label ? : $this->getFieldLabel($name),
+            $label,
             $value
         );
         // set the min and max dates to calculated dates not 'relative' dates as this
@@ -108,8 +129,8 @@ class CheckfrontForm extends Form {
         $config = array_merge(
             static::get_config_setting('date_field_config'),
             array(
-                'min' => date('Y-m-d', strtotime($startDate ? : CheckfrontModule::DefaultStartDate)),
-                'max' => date('Y-m-d', strtotime($endDate ? : CheckfrontModule::DefaultEndDate))
+                'min' => date('Y-m-d', strtotime($startDate ?: CheckfrontModule::DefaultStartDate)),
+                'max' => date('Y-m-d', strtotime($endDate ?: CheckfrontModule::DefaultEndDate))
             )
         );
 

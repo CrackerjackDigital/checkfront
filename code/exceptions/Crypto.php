@@ -1,4 +1,4 @@
 <?php
-class CheckfrontCryptoException extends Exception {
+class CheckfrontCryptoException extends CheckfrontException {
 
 }

@@ -133,6 +133,13 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     }
 
     /**
+     * @return string path to url shortener
+     */
+    public static function shorturl_endpoint() {
+        return (string)static::config()->get('shorturl_endpoint');
+    }
+
+    /**
      * Calls through to crypto.encrypt_token however force correct number of tokens at least. Pass null
      * where you don't have a parameter to pass through.
      *

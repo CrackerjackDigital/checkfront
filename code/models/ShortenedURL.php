@@ -16,7 +16,7 @@ class CheckfrontShortenedURL extends DataObject {
     private static $valid_chars = 'ABCDEFGHIJKLMNOPQRSTVWXYZabcdefghijklmnopqrstvwxyz0123456789';
 
     public static function get_url_by_key($key) {
-        if ($existing = CheckfrontShortenedURL::get()->filter("Key = '$key'")->first()) {
+        if ($existing = CheckfrontShortenedURL::get()->filter('Key', $key)->first()) {
             return $existing->URL;
         }
     }
@@ -50,7 +50,7 @@ class CheckfrontShortenedURL extends DataObject {
     }
 
     public static function key_exists($key) {
-        return CheckfrontShortenedURL::get()->filter("Key = '$key'")->count() != 0;
+        return CheckfrontShortenedURL::get()->filter('Key', $key)->count() != 0;
     }
 
     /**
@@ -74,5 +74,6 @@ class CheckfrontShortenedURL extends DataObject {
                 throw new Exception("Can't update existing key with a new URL");
             }
         }
+        parent::onBeforeWrite();
     }
 }

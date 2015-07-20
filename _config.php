@@ -4,6 +4,7 @@
 Director::addRules(
     100,
     array(
-        CheckfrontModule::private_endpoint() => 'CheckfrontPackageController'
+        CheckfrontModule::private_endpoint() => 'CheckfrontPackageController',
+        CheckfrontModule::shorturl_endpoint() => 'CheckfrontURLShortenerController'
     )
 );

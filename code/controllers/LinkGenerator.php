@@ -119,11 +119,38 @@ class CheckfrontLinkGeneratorController extends ContentController {
         );
     }
 
+    /**
+     * Returns and shortened URL which will redirect from CheckfrontModule.config.shortened_endpoint to
+     * the full booking path when hit.
+     *
+     * @param $accessKey
+     * @param $itemID
+     * @param $startDate
+     * @param $endDate
+     * @param $linkType
+     * @param $userType
+     * @param $paymentType
+     *
+     * @return String
+     * @throws ValidationException
+     * @throws null
+     */
     protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
         $endPoint = Controller::join_links(
             CheckfrontModule::PrivateEndPoint,
             'package'
         );
-        return CheckfrontModule::make_link($accessKey, $endPoint, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType);
+        $fullURL = CheckfrontModule::make_link($accessKey, $endPoint, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType);
+
+        $shortURL = new CheckfrontShortenedURL(array(
+            'URL' => $fullURL
+        ));
+        $shortURL->write();
+
+        return Controller::join_links(
+            Director::absoluteBaseURL(),
+            CheckfrontModule::shorturl_endpoint(),
+            $shortURL->Key
+        );
     }
 }

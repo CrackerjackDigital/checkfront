@@ -13,6 +13,12 @@ class CheckfrontEventModel extends CheckfrontModel {
             'start_date' => 'StartDate',
             'end_date' => 'EndDate'
         ),
+        'javascript' => array(
+            'EventID' => 'id',
+            'Title' => 'name',
+            'StartDate' => 'start_date',
+            'EndDate' => 'end_date'
+        )
     );
 
 }

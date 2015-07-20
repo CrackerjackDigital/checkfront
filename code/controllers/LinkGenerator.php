@@ -17,7 +17,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
 
     public function index(SS_HTTPRequest $request) {
         if ($request->isPOST()) {
-            return $this->generateLink($request);
+            return $this->generateLinks($request);
         } else {
             return $this->show($request);
         }
@@ -63,19 +63,31 @@ class CheckfrontLinkGeneratorController extends ContentController {
      *
      * @return HTMLText
      */
-    protected function generateLink(SS_HTTPRequest $request) {
+    protected function generateLinks(SS_HTTPRequest $request) {
         $postVars = $request->postVars();
 
-        $package = CheckfrontModule::api()->fetchPackage(
-            $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName]
-        )->getPackage();
+        $packageID = $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName];
 
+        $packageResponse = CheckfrontModule::api()->fetchPackage($packageID);
+
+        if (!$package = $packageResponse->getPackage()) {
+            throw new CheckfrontException(_t('Package.NoSuchPackageMessage', "Package {id}not found", array('id' => $packageID)));
+        }
+/*
+        if (!$organiserEvent = $packageResponse->getEvent($postVars[CheckfrontLinkGeneratorForm::OrganiserEventFieldName])) {
+            throw new CheckfrontException(_t('Package.NoSuchEventMessage', "{type}event not found", array('type' => 'Organiser ')));
+        }
+        if (!$individualEvent = $packageResponse->getEvent($postVars[CheckfrontLinkGeneratorForm::IndividualEventFieldName])) {
+            throw new CheckfrontException(_t('Package.NoSuchEventMessage', "{type}event not found", array('type' => 'Individual ')));
+        }
+*/
         $accessKey = CheckfrontModule::crypto()->generate_key();
 
         $organiserLink = $this->makeLink(
             $accessKey,
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::OrganiserEventFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::OrganiserStartDate],
+            $postVars[CheckfrontLinkGeneratorForm::OrganiserEndDate],
             $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
             CheckfrontModule::UserTypeOrganiser,
             $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
@@ -84,7 +96,8 @@ class CheckfrontLinkGeneratorController extends ContentController {
         $individualLink = $this->makeLink(
             $accessKey,
             $postVars[CheckfrontLinkGeneratorForm::PackageIDFieldName],
-            $postVars[CheckfrontLinkGeneratorForm::IndividualEventFieldName],
+            $postVars[CheckfrontLinkGeneratorForm::IndividualStartDate],
+            $postVars[CheckfrontLinkGeneratorForm::IndividualEndDate],
             $postVars[CheckfrontLinkGeneratorForm::LinkTypeFieldName],
             CheckfrontModule::UserTypeIndividual,
             $postVars[CheckfrontLinkGeneratorForm::PaymentTypeFieldName]
@@ -95,17 +108,18 @@ class CheckfrontLinkGeneratorController extends ContentController {
         return $this->renderWith(
             array('CheckfrontLinkGenerator', 'Page'),
             array(
+                'ShowOutput' => true,
                 'Package' => $package,
-                'Posted' => $request->postVars(),
-                'AccessKey' => $accessKey,
+                'Posted' => new ArrayData($postVars),
                 'OrganiserLink' => $organiserLink,
                 'IndividualLink' => $individualLink,
+                'AccessKey' => $accessKey,
                 'CheckfrontForm' => $form
             )
         );
     }
 
-    protected static function makeLink($accessKey, $itemID, $event, $linkType, $userType, $paymentType) {
-        return CheckfrontModule::make_link($accessKey, $itemID, $event, $linkType, $userType, $paymentType);
+    protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
+        return CheckfrontModule::make_link($accessKey, 'package/book', $itemID, $startDate, $endDate, $linkType, $userType, $paymentType);
     }
 }

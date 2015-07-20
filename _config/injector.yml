@@ -1,9 +1,11 @@
+---
+Name: checkfront-service-config
+---
 Injector:
   CheckfrontAPI:
     class: CheckfrontCachingAPIBridge
     properties:
       implementation: %$CheckfrontAPIImplementation
-  CheckfrontAPICache: CheckfrontCacheSession
   CheckfrontAPIConfig: CheckfrontAPIConfig
   CheckfrontAPIImplementation:
     factory: CheckfrontAPIImplementationFactory
@@ -15,4 +17,3 @@ Injector:
   CheckfrontPackageResponse: CheckfrontAPIPackageResponse
   CheckfrontResponse: CheckfrontAPIResponse
   CheckfrontSession: CheckfrontSession
-

@@ -1,31 +1,33 @@
 <div class="checkfront-link-generator">
-	<% if $BookingLink %>
+	<% if $ShowOutput %>
 		<div class="checkfront-link-info">
 			<table>
 				<tr>
 					<td>Name</td><td>$Package.Title</td>
 				</tr>
 				<tr>
-					<td>SKU</td><td>$Package.SKU</td>
-				</tr>
-				<tr>
-					<td>Type</td><t>$Posted.Type</t>
-				</tr>
-				<tr>
-					<td>Organiser Event</td><td>$OrganiserEvent</td>
-				</tr>
-				<tr>
-					<td>Individual Event</td><td>$IndividualEvent</td>
+					<td>Access Key</td>
+					<td colspan="5">$AccessKey</td>
 				</tr>
 			</table>
 			<table>
 				<tr>
-					<td>Access Key</td>
-					<td colspan="5">$AccessKey</td>
+					<td>Organiser Start Date</td><td>$Posted.OrganiserStartDate</td>
+				</tr>
+				<tr>
+					<td>Organiser End Date</td><td>$Posted.OrganiserEndDate</td>
 				</tr>
 				<tr>
 					<td>OrganiserLink</td>
 					<td colspan="5"><a href="$OrganiserLink">$OrganiserLink</a></td>
+				</tr>
+			</table>
+			<table>
+				<tr>
+					<td>Individual Start Date</td><td>$Posted.IndividualStartDate</td>
+				</tr>
+				<tr>
+					<td>Individual End Date</td><td>$Posted.IndividualEndDate</td>
 				</tr>
 				<tr>
 					<td>IndividualLink</td>

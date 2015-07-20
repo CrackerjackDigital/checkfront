@@ -27,35 +27,24 @@ class CheckfrontPackageModel extends CheckfrontModel {
         ),
         'booking/session' => array(
             'RateSlip' => 'slip'
-        ),
-        'events' => array(
-
         )
     );
 
     /**
-     * Make a link/token to this booking
+     * Make a public link/token to this booking
      *
-     * @param string $linkType
-     * @param string $userType
-     * @param string $paymentType
+     * @param $linkType
      *
      * @return String
      */
-/*
-    public function Link($linkType = 'public', $userType = 'individual', $paymentType = CheckfrontModule::PaymentPayNow) {
-        return Controller::join_links(
-            CheckfrontModule::endpoints('public'),
-            CheckfrontModule::encrypt_token(
-                null,
-                $this->ItemID,
-                '',
-                '',
-                $linkType,
-                $userType,
-                $paymentType
-            )
+    public function PublicLink($linkType = CheckfrontModule::LinkTypePublic) {
+        return CheckfrontModule::make_link(
+            null,
+            $this->ItemID,
+            null,
+            $linkType,
+            CheckfrontModule::UserTypeIndividual,
+            CheckfrontModule::PaymentPayNow
         );
     }
-*/
 }

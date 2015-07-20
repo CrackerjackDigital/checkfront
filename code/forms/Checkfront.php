@@ -88,11 +88,10 @@ class CheckfrontForm extends Form {
      * Returns a DateField configured with start, end dates.
      *
      * @param $name
-     * @param $value
+     * @param $value     - initial value
      * @param $startDate - start date which can be selected from, defaults to CheckfrontModule.DefaultStartDate
      * @param $endDate   - end date which can be selected to, defaults to CheckfrontModule.DefaultEndDate
      *
-     * @internal param \SS_HTTPRequest $request
      * @return DateField
      */
     public function makeDateField($name, $value,

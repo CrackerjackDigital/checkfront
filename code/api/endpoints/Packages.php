@@ -37,7 +37,7 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
                 __FUNCTION__,
                 array(
                     'category_id' => CheckfrontModule::package_category_id(),
-                    'packages' => 1
+                    'packages' => true
                 ),
                 $this->buildDates($startDate, $endDate),
                 $filters
@@ -73,8 +73,9 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
             $params = self::request_params(
                 __FUNCTION__,
                 array(
-                    'category_id' => CheckfrontModule::package_category_id(),
-                    'packages' => 1
+//                    'category_id' => CheckfrontModule::package_category_id(),
+                    'packages' => true,
+                    'product_group_type' => 'N'
                 ),
                 $this->buildDates($startDate, $endDate),
                 $filters

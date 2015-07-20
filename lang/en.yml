@@ -16,8 +16,11 @@ en:
     SubmitButtonText: 'book'
   CheckfrontAccessKeyForm:
     SubmitButtonText: 'verify'
+  CheckfrontBookingPage:
+    PackageListTitle: 'Please select a package'
+    BookingFormTitle: 'Please enter your details'
   Package:
-    NoSuchPackageMessage: "Sorry, that package is no longer available"
-    NoSuchEventMessage: "Sorry, that event is no longer available"
+    NoSuchPackageMessage: "Sorry, that package is no longer available {id}"
+    NoSuchEventMessage: "Sorry, that {type}event is no longer available"
 
 

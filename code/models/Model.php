@@ -136,7 +136,7 @@ class CheckfrontModel extends DataObject {
             return $map[$forAction];
 
         } else {
-            $fieldMap = [];
+            $fieldMap = array();
             // try using wildcards instead building list of all matches
             foreach ($map as $action => $actionFields) {
                 // use glob syntax to match against action

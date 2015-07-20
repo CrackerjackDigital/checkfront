@@ -1,0 +1,15 @@
+---
+Name: checkfront-caching-config
+# disables caching if in developer mode
+Only:
+  constantdefined: CHECKFRONT_USE_DEV
+---
+Injector:
+  CheckfrontAPICache: CheckfrontCache       # 'null' cache
+---
+Except:
+  constantdefined: CHECKFRONT_USE_DEV
+---
+Injector:
+  CheckfrontAPICache: CheckfrontCacheSession
+---

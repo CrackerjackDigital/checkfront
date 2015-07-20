@@ -6,38 +6,38 @@ use Defuse\Crypto\Crypto as Crypto;
  * surface.
  */
 class CheckfrontModule extends Object implements CheckfrontAPIInterface {
-    const DefaultStartDate            = '+1 day';
-    const DefaultEndDate              = '+2 year';
-    const DefaultAvailabilityNumDays  = 731;
+    const DefaultStartDate = '+1 day';
+    const DefaultEndDate = '+2 year';
+    const DefaultAvailabilityNumDays = 731;
     const DefaultCheckfrontDateFormat = 'Ymd';
 
     const NullDate = null;
 
-    const PrivateEndPoint             = 'package/book';
-    const LinkGeneratorEndPoint       = 'checkfront/link-generator';
+    const PrivateEndPoint = 'package/book';
+    const LinkGeneratorEndPoint = 'checkfront/link-generator';
 
-    const APIServiceName           = 'CheckfrontAPI';
-    const APICacheServiceName      = 'CheckfrontAPICache';
-    const APIConfigServiceName     = 'CheckfrontAPIConfig';
+    const APIServiceName = 'CheckfrontAPI';
+    const APICacheServiceName = 'CheckfrontAPICache';
+    const APIConfigServiceName = 'CheckfrontAPIConfig';
     const AuthenticatorServiceName = 'CheckfrontAuthenticator';
-    const CryptoServiceName        = 'CheckfrontCryptoService';
-    const SessionServiceName       = 'CheckfrontSession';
+    const CryptoServiceName = 'CheckfrontCryptoService';
+    const SessionServiceName = 'CheckfrontSession';
 
-    const TokenItemCount = 5;
+    const TokenItemCount = 6;
 
     // index of ItemID (e.g. package ID) in decrypted token array
-    const TokenItemIDIndex          = 0;
-    const TokenOrganiserEventIndex  = 1;
-    const TokenIndividualEventIndex = 2;
-    const TokenLinkTypeIndex        = 3;
-    const TokenUserTypeIndex        = 4;
-    const TokenPaymentTypeIndex     = 5;
+    const TokenItemIDIndex = 0;
+    const TokenStartDateIndex = 1;
+    const TokenEndDateIndex = 2;
+    const TokenLinkTypeIndex = 3;
+    const TokenUserTypeIndex = 4;
+    const TokenPaymentTypeIndex = 5;
 
     const UserTypeOrganiser = 'organiser';
     const UserTypeIndividual = 'individual';
 
     // internal payment method options govern where the user goes after booking
-    const PaymentPayNow   = 'pay-now';
+    const PaymentPayNow = 'pay-now';
     const PaymentPayLater = 'pay-later';
 
     const LinkTypePublic = 'public';
@@ -146,15 +146,16 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * @internal param $individualEvent
      * @return string - valid token
      */
-    public static function encrypt_token($accessKey, $itemID, $event, $linkType, $userType, $paymentType) {
+    public static function encrypt_token($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
         try {
             return self::crypto()->encrypt_token(array(
-                    $itemID,
-                    $event,
-                    $linkType,
-                    $userType,
-                    $paymentType
-                ),
+                $itemID,
+                $startDate,
+                $endDate,
+                $linkType,
+                $userType,
+                $paymentType
+            ),
                 $accessKey
             );
         } catch (Exception $e) {
@@ -184,6 +185,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
             throw new CheckfrontCryptoException("Failed to decrypt token", $e->getCode(), $e);
         }
     }
+
     /**
      * Returns link to booking on the site depending on options provided, this function
      * binds to the parameters in the token via the number of parameters on the method.
@@ -198,14 +200,20 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
 
-    public static function make_link($accessKey, $itemID, $event, $linkType, $userType, $paymentType) {
+    public static function make_link($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
+        $endpoints = CheckfrontModule::endpoints($linkType);
+        if (!is_array($endpoints)) {
+            $endpoints = array($endpoints);
+        }
+
         return Controller::join_links(
             Director::absoluteBaseURL(),
-            $linkType,
+            reset($endpoints),
             self::encrypt_token(
                 $accessKey,
                 $itemID,
-                $event,
+                $startDate,
+                $endDate,
                 $linkType,
                 $userType,
                 $paymentType
@@ -233,25 +241,25 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * Adds all page instances of page classes which extend with the 'CheckfrontPageExtension' extension
      * as 'public' endpoints with their Link as the key.
      *
-     * @param null $which - e.g. 'public' or 'private'
+     * @param null $type - e.g. 'public' or 'private'
      *
      * @return string endpoint suitable for SilverStripe routing
      */
-    public static function endpoints($which = null) {
-        $endpoints = self::config()->get('endpoints') ? : array();
+    public static function endpoints($type = null) {
+        $endpoints = self::config()->get('endpoints') ?: array();
 
         $implementors = ClassInfo::implementorsOf('CheckfrontPageExtension');
         if ($implementors) {
             // for each implementor get all 'pages' of that class and add as a public endpoint.
             foreach ($implementors as $className) {
                 foreach ($className::get() as $page) {
-                    $endpoints[$page->Link()] = 'public';
+                    $endpoints[$page->Link()] = CheckfrontModule::LinkTypePublic;
                 }
             }
         }
-        if ($which) {
-            // filter down to what we are interested in if supplied, e.g 'public' entries only
-            $endpoints = array_intersect($endpoints, array($which));
+        if ($type) {
+            // filter down to what we are interested in if supplied, e.g 'public' entries only,
+            $endpoints = array_intersect_key($endpoints, array_flip(array($type)));
         }
 
         return $endpoints;
@@ -262,8 +270,13 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * e.g. [ 'public' => 'Public', ... ]
      * @return array
      */
-    public static function link_types() {
-        return self::config()->get('link_types');
+    public static function link_types($type = null) {
+        $types = self::config()->get('link_types');
+        if ($type) {
+            return $types[$type];
+        }
+
+        return $types;
     }
 
     /**
@@ -271,8 +284,13 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * e.g. [ 'organiser' => 'Organiser', ... ]
      * @return array
      */
-    public static function user_types() {
-        return self::config()->get('user_types');
+    public static function user_types($type = null) {
+        $types = self::config()->get('user_types');
+        if ($type) {
+            return $types[$type];
+        }
+
+        return $types;
     }
 
     /**
@@ -280,8 +298,13 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * e.g. [ 'pay-now' => 'Pay now', ... ]
      * @return array
      */
-    public static function payment_types() {
-        return self::config()->get('payment_types');
+    public static function payment_types($type = null) {
+        $types = self::config()->get('payment_types');
+        if ($type) {
+            return $types[$type];
+        }
+
+        return $types;
     }
 
     /**
@@ -505,18 +528,18 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
                 if ($key && isset($valueOrArray[$key])) {
 
                     $value = $valueOrArray[$key];
-                    $year = substr($value, 0, 4);
+                    $year  = substr($value, 0, 4);
                     $month = substr($value, 5, 2);
-                    $day = substr($value, 7, 2);
+                    $day   = substr($value, 7, 2);
 
                     $value = date('Y-m-d', mktime(0, 0, 0, (int)$month, (int)$day, (int)$year));
                 } else {
                     throw new CheckfrontException("Invalid date passed: '" . implode(',', $valueOrArray) . "'");
                 }
             } elseif (is_numeric($valueOrArray)) {
-                $year = substr($valueOrArray, 0, 4);
+                $year  = substr($valueOrArray, 0, 4);
                 $month = substr($valueOrArray, 5, 2);
-                $day = substr($valueOrArray, 7, 2);
+                $day   = substr($valueOrArray, 7, 2);
 
                 $value = date('Y-m-d', mktime(0, 0, 0, (int)$month, (int)$day, (int)$year));
             } else {
@@ -525,6 +548,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
         } else {
             // no date is OK, just return default null date
         }
+
         return $value;
     }
 
@@ -533,7 +557,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * @return string
      */
     public static function module_path() {
-        return static::config()->get('module_path') ? : realpath(__DIR__ . '/../');
+        return static::config()->get('module_path') ?: realpath(__DIR__ . '/../');
     }
 
 }

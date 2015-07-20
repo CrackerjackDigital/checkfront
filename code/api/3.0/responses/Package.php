@@ -18,8 +18,13 @@ class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
     public function getEvents() {
         $list = new ArrayList();
         if (isset($this->data['events'])) {
-            foreach ($this->data['events'] as $event) {
-                $list->push(CheckfrontEventModel::create_from_checkfront($event));
+            foreach ($this->data['events'] as $eventID => $event) {
+                $model = CheckfrontEventModel::create_from_checkfront($event);
+
+                $model->EventID = $eventID;
+
+                $list->push($model);
+
             }
         }
         return $list;
@@ -35,7 +40,9 @@ class CheckfrontAPIPackageResponse extends CheckfrontAPIResponse {
      * @return CheckfrontEventModel|null
      */
     public function getEvent($eventID) {
-        return $this->getEvents()->filter('EventID', $eventID)->first();
+        if ($eventID) {
+            return $this->getEvents()->filter('EventID', $eventID)->first();
+        }
     }
 
     /**

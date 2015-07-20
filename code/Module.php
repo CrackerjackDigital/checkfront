@@ -13,7 +13,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
 
     const NullDate = null;
 
-    const PrivateEndPoint = 'package/book';
+    const PrivateEndPoint = 'private/book';
     const LinkGeneratorEndPoint = 'checkfront/link-generator';
 
     const APIServiceName = 'CheckfrontAPI';
@@ -43,6 +43,8 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const LinkTypePublic = 'public';
     const LinkTypePrivate = 'private';
 
+    /** @var string where the 'private' booking form should be accessed */
+    private static $private_endpoint = self::PrivateEndPoint;
 
     /** @var  string override the installed path of checkfront module */
     private static $module_path;
@@ -56,13 +58,6 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     /** @var string in format usefull to 'date()' function e.g. 'Ymd' */
     private static $checkfront_date_format = self::DefaultCheckfrontDateFormat;
 
-    // we also need to set the 'public' endpoint which is link of the CheckfrontBookingPage
-    // or CheckfrontPackageControllerExtension extended page model instance
-    // NB: order is important for deconstruction here, don't move around!
-    private static $endpoints = array(
-        self::PrivateEndPoint       => 'private', // default private endpoint
-        self::LinkGeneratorEndPoint => 'link-generator'
-    );
     private static $user_types = array(
         self::UserTypeOrganiser  => 'Organiser',
         self::UserTypeIndividual => 'Individual'
@@ -131,6 +126,13 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     }
 
     /**
+     * @return string private endpoint where 'private' bookings should be made, e.g. 'private/book'
+     */
+    public static function private_endpoint() {
+        return (string)static::config()->get('private_endpoint');
+    }
+
+    /**
      * Calls through to crypto.encrypt_token however force correct number of tokens at least. Pass null
      * where you don't have a parameter to pass through.
      *
@@ -191,8 +193,8 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * binds to the parameters in the token via the number of parameters on the method.
      *
      * @param $accessKey   - from Cryptofier.generate_key
+     * @param $endPoint    - where this link will go to (e.g. page or controller endpoint).
      * @param $itemID
-     * @param $event
      * @param $linkType    - e.g 'public' or 'private'
      * @param $userType    - e.g. 'organiser' or 'individual'
      * @param $paymentType - e.g 'pay-now' or 'pay-later'
@@ -200,15 +202,10 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      * @return string - link to page on site either via BookingPage or the CheckfrontPackageController
      */
 
-    public static function make_link($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
-        $endpoints = CheckfrontModule::endpoints($linkType);
-        if (!is_array($endpoints)) {
-            $endpoints = array($endpoints);
-        }
-
+    public static function make_link($accessKey, $endPoint, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
         return Controller::join_links(
             Director::absoluteBaseURL(),
-            reset($endpoints),
+            $endPoint,
             self::encrypt_token(
                 $accessKey,
                 $itemID,
@@ -236,34 +233,6 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
         );
     }
 
-    /**
-     * Return the endpoints where the public, private and link_generator routes are based on config.endpoints.
-     * Adds all page instances of page classes which extend with the 'CheckfrontPageExtension' extension
-     * as 'public' endpoints with their Link as the key.
-     *
-     * @param null $type - e.g. 'public' or 'private'
-     *
-     * @return string endpoint suitable for SilverStripe routing
-     */
-    public static function endpoints($type = null) {
-        $endpoints = self::config()->get('endpoints') ?: array();
-
-        $implementors = ClassInfo::implementorsOf('CheckfrontPageExtension');
-        if ($implementors) {
-            // for each implementor get all 'pages' of that class and add as a public endpoint.
-            foreach ($implementors as $className) {
-                foreach ($className::get() as $page) {
-                    $endpoints[$page->Link()] = CheckfrontModule::LinkTypePublic;
-                }
-            }
-        }
-        if ($type) {
-            // filter down to what we are interested in if supplied, e.g 'public' entries only,
-            $endpoints = array_intersect_key($endpoints, array_flip(array($type)));
-        }
-
-        return $endpoints;
-    }
 
     /**
      * Return the available Link Types, as a map of 'value' => 'Title' suitable for use in a drop-down field.

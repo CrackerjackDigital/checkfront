@@ -1,14 +1,6 @@
 ---
 Name: checkfront-module-extensions
 ---
-Member:
-  extensions:
-    - CheckfrontMemberExtension
-
-CheckfrontBookingPage:
-  extensions:
-    - CheckfrontPageExtension
-
 CheckfrontBookingPage_Controller:
   extensions:
     - CheckfrontPackageControllerExtension

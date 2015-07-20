@@ -1,17 +1,9 @@
 <?php
-/*
- * // TODO: fix up dynamic routing to correct controllers, public doesn't work so will do
- * // via routes.yml for now
+// dynamically add CheckfrontModule.private_endpoint to the routing table.
 
-$endpoints = CheckfrontModule::endpoints();
-
-Config::inst()->update(
-    'Director',
-    'rules',
-    array (
-        $endpoints['private'] => 'CheckfrontPackageController',
-        $endpoints['public'] => 'CheckfrontBookingPageController',
-        $endpoints['link-generator'] => 'CheckfrontLinkGeneratorController'
+Director::addRules(
+    100,
+    array(
+        CheckfrontModule::private_endpoint() => 'CheckfrontPackageController'
     )
 );
-*/

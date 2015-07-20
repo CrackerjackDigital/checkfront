@@ -16,12 +16,11 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     const TokenParam        = 'Token';
 
     private static $allowed_actions = array(
-        'index' => true,
+        'package' => true
     );
 
     private static $url_handlers = array(
-        'index' => 'package',
-        'index/$Token!' => 'package'
+        'package/$Token!' => 'package'
     );
 
     private static $form_name = self::FormName;
@@ -35,107 +34,10 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         )
     );
 
-    public static function get_extra_config($class, $extension, $args) {
-        $urlHandlers = array(
-            '$' . self::TokenParam . '!' => 'index'
-        );
-
-        return array(
-            'url_handlers' => $urlHandlers
-        );
-    }
-
-    public function index(SS_HTTPRequest $request) {
-        return $this->package($request);
-    }
-
-    /**
-     * @return ContentController
-     */
-    public function __invoke() {
-        return $this->owner;
-    }
-
-    /**
-     * Override parent return types mainly for ease of coding.
-     * @return CheckfrontAPIImplementation|CheckfrontAPIBookingFormEndpoint|CheckfrontAPIPackagesEndpoint|CheckfrontAPIItemsEndpoint|CheckfrontAPIBookingEndpoint|CheckfrontAPISessionEndpoint
-     */
-    protected function api() {
-        return parent::api();
-    }
 
     public function PackageList() {
         $packageList = $this->api()->listPackages()->getPackages();
         return $packageList;
-    }
-
-    /**
-     * Check if the current rendered page is a 'public' page using the CheckfrontModule.endpoints() result as the
-     * dictionary.
-     *
-     * @return bool
-     */
-    protected function isPublic() {
-        /** @var ContentController $controller */
-        $controller = $this();
-        $url = $controller->getRequest()->param('URLSegment');
-        if ($url) {
-            return in_array($url, CheckfrontModule::endpoints('public'));
-        }
-
-        return false;
-
-    }
-
-    /**
-     * Check if we received a postVar 'action_$buttonName'
-     *
-     * @param $request
-     * @param $buttonName
-     *
-     * @return mixed
-     */
-    protected function isAction($request, $buttonName) {
-        return $request->postVar('action_' . $buttonName);
-    }
-
-    /**
-     * Return the desctructured token or part thereof.
-     *
-     * @param string $which     - optional single item to return, otherwise returns all
-     * @param string $accessKey - to decrypt token, must be supplied first time around or force by resupplying
-     *
-     * @throws Exception
-     * @return array|null
-     */
-    public function getTokenInfo($which = null, $accessKey = null) {
-        if (!$detokenised = CheckfrontModule::session()->getToken()) {
-            $request = $this()->getRequest();
-
-            if ($token = $request->param(self::TokenParam)) {
-
-                $detokenised = CheckfrontModule::decrypt_token($accessKey, $token);
-
-                // cache the token for retrieval later
-                CheckfrontModule::session()->setToken(
-                    $detokenised
-                );
-
-            } else {
-                throw new CheckfrontException("No token");
-            }
-        };
-
-        if ($detokenised) {
-            if (!is_null($which)) {
-                if (!array_key_exists($which, $detokenised)) {
-                    return null;
-                }
-                return $detokenised[$which];
-            }
-        }
-
-        return $detokenised;
     }
 
     /**
@@ -149,8 +51,10 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     public function package(SS_HTTPRequest $request) {
         $result = array();
         $message = '';
+        $isPublic = $this->owner->checkfrontPublicPage();
 
         try {
+
             if (isset($request)) {
                 if ($request->isPOST()) {
 
@@ -159,13 +63,13 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                         // process AccessKeyForm submission
                         $result = $this->buildBookingForm($request);
 
-                    } elseif ($this->isAction($request, CheckfrontBookingForm::SubmitButtonName)) {
+                    } elseif ($this->isAction($request, CheckfrontPackageBookingForm::SubmitButtonName)) {
 
                         // process BookingForm submission
                         $result = $this->book($request);
                     }
                 } else {
-                    if ($this->isPublic()) {
+                    if ($isPublic) {
                         // no access key required
                         if ($request->param(self::TokenParam)) {
                             // url has a token so show the booking form
@@ -189,15 +93,13 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         } catch (Exception $e) {
             $message = $e->getMessage();
         }
-        return $this()->renderWith(
-            array(self::TemplateName, 'Page'),
-            array_merge(
-                $result,
-                array(
-                    self::MessageKey => $message
-                )
-            )
+        $result = array_merge(
+            array(
+                'Message' => $message,
+            ),
+            $result
         );
+        return $this->owner->customise($result)->renderWith(array(self::TemplateName, 'Page'));
     }
 
     /**
@@ -217,39 +119,25 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             // access key posted by AccessKeyForm is from cryptofier.generate_key via the original link generator
             $accessKey = $request->postVar(CheckfrontAccessKeyForm::AccessKeyFieldName);
 
-            if (!$this->isPublic()) {
+            if (!$this->owner->checkfrontPublicPage()) {
                 try {
                     // check entered key is a valid Crypto key first, should throw exception if not
                     CheckfrontModule::crypto()->encrypt('somethingrandomheredontcarewhat', $accessKey);
 
-                    list($packageID, $eventID, $linkType, $userType, $paymentType) = $this->getTokenInfo(null, $accessKey);
+                    list($packageID, $startDate, $endDate, $linkType, $userType, $paymentType) = $this->getTokenInfo(null, $accessKey);
 
                 } catch (CryptofierException $e) {
                     throw new CheckfrontException("Invalid access token");
                 }
             } else {
-                list($packageID, $eventID, $linkType, $userType, $paymentType) = $this->getTokenInfo();
+                list($packageID, $startDate, $endDate, $linkType, $userType, $paymentType) = $this->getTokenInfo();
             }
+
             if (is_numeric($packageID)) {
                 /** @var CheckfrontAPIPackageResponse $packageResponse */
                 if ($packageResponse = $this->api()->fetchPackage($packageID)) {
 
                     if ($packageResponse->isValid()) {
-                        if ($event = $packageResponse->getEvent($eventID)) {
-
-                            $startDate = $event->StartDate;
-                            $endDate   = $event->EndDate;
-
-                        } elseif ($eventID) {
-
-                            throw new CheckfrontException(_t('Package.NoSuchEventMesssage', "No such event"));
-
-                        } else {
-                            $startDate = CheckfrontModule::DefaultStartDate;
-                            $endDate   = CheckfrontModule::DefaultEndDate;
-                        }
-
-
                         // re-query with start and end date
                         if ($packageResponse = $this->api()->fetchPackage($packageID, $startDate, $endDate)) {
 
@@ -303,21 +191,20 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
                                 // maybe mode down, we can still show a booking form even without items?
                                 /** @var Form $form */
-                                $form = new CheckfrontBookingForm(
+                                $form = new CheckfrontPackageBookingForm(
                                     $this->owner,
                                     self::FormName,
                                     $fields,
                                     new FieldList()
                                 );
-                                $form->setFormAction('/' . $this()->getRequest()->getURL());
+                                $form->setFormAction('/' . $this->owner->getRequest()->getURL());
 
                                 // TODO: make sure there's nothing nasty we're loading here
                                 $form->loadDataFrom($request->postVars());
 
                                 $result = array(
                                     self::FormName => $form,
-                                    'Package' => $package,
-                                    'Event' => $event
+                                    'CurrentPackage' => $package
                                 );
                             }
                         }
@@ -331,10 +218,10 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         }
 
         return array_merge(
+            $result,
             array(
                 self::MessageKey => $message
-            ),
-            $result
+            )
         );
     }
 
@@ -357,7 +244,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             new FieldList(),
             new FieldList()
         );
-        $form->setFormAction('/' . $this()->getRequest()->getURL());
+        $form->setFormAction('/' . $this->owner->getRequest()->getURL());
         return array(
             self::FormName => $form
         );
@@ -453,6 +340,75 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         );
     }
 
+    /**
+     *
+     * Check if the current URL maps to a page on the site, in which case is 'Public' otherwise is private
+     * (e.g. goes directly to controller).
+     *
+     * @return bool
+     */
+    protected function isPublic() {
+        /** @var ContentController $controller */
+        $controller = $this->owner;
+        $url = $controller->getRequest()->getURL();
+
+        if ($page = SiteTree::get_by_link($url)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if we received a postVar 'action_$buttonName'
+     *
+     * @param $request
+     * @param $buttonName
+     *
+     * @return mixed
+     */
+    protected function isAction($request, $buttonName) {
+        return $request->postVar('action_' . $buttonName);
+    }
+
+    /**
+     * Return the desctructured token or part thereof.
+     *
+     * @param string $which     - optional single item to return, otherwise returns all
+     * @param string $accessKey - to decrypt token, must be supplied first time around or force by resupplying
+     *
+     * @throws Exception
+     * @return array|null
+     */
+    public function getTokenInfo($which = null, $accessKey = null) {
+        if (!$detokenised = CheckfrontModule::session()->getToken()) {
+            $request = $this->owner->getRequest();
+
+            if ($token = $request->param(self::TokenParam)) {
+
+                $detokenised = CheckfrontModule::decrypt_token($accessKey, $token);
+
+                // cache the token for retrieval later
+                CheckfrontModule::session()->setToken(
+                    $detokenised
+                );
+
+            } else {
+                throw new CheckfrontException("No token");
+            }
+        };
+
+        if ($detokenised) {
+            if (!is_null($which)) {
+                if (!array_key_exists($which, $detokenised)) {
+                    return null;
+                }
+                return $detokenised[$which];
+            }
+        }
+
+        return $detokenised;
+    }
+
 
     /**
      * Applies rules to determine if an item should be added to the form depending on the item
@@ -494,5 +450,19 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
         return $value;
     }
+    /**
+     * Override parent return types mainly for ease of coding.
+     * @return CheckfrontAPIImplementation|CheckfrontAPIBookingFormEndpoint|CheckfrontAPIPackagesEndpoint|CheckfrontAPIItemsEndpoint|CheckfrontAPIBookingEndpoint|CheckfrontAPISessionEndpoint
+     */
+    protected function api() {
+        return parent::api();
+    }
 
+
+    /**
+     * @return ContentController
+     */
+    public function __invoke() {
+        return $this->owner;
+    }
 }

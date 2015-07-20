@@ -120,6 +120,10 @@ class CheckfrontLinkGeneratorController extends ContentController {
     }
 
     protected static function makeLink($accessKey, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType) {
-        return CheckfrontModule::make_link($accessKey, 'package/book', $itemID, $startDate, $endDate, $linkType, $userType, $paymentType);
+        $endPoint = Controller::join_links(
+            CheckfrontModule::PrivateEndPoint,
+            'package'
+        );
+        return CheckfrontModule::make_link($accessKey, $endPoint, $itemID, $startDate, $endDate, $linkType, $userType, $paymentType);
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
-class CheckfrontBookingForm extends CheckfrontForm {
-    const FormName = 'CheckfrontForm';
+class CheckfrontPackageBookingForm extends CheckfrontForm {
     const SubmitButtonName = 'book';
 
     /**
@@ -10,13 +9,13 @@ class CheckfrontBookingForm extends CheckfrontForm {
      *  -   Checkfront booking form fields from call to api.fetchBookingForm
      *  -   A 'book' action
      *
-     * @param array $controller
-     * @param array $nameOverrideDefault
-     * @param $fields
-     * @param $actions
+     * @param Controller $controller
+     * @param string $name
+     * @param FieldList $fields
+     * @param FieldList $actions
      * @param null $validator
      */
-    public function __construct($controller, $nameOverrideDefault, $fields, $actions, $validator = null) {
+    public function __construct($controller, $name, $fields, $actions, $validator = null) {
         $fields = $fields ?: new FieldList();
         $actions = $actions ?: new FieldList();
 
@@ -41,7 +40,7 @@ class CheckfrontBookingForm extends CheckfrontForm {
 
         parent::__construct(
             $controller,
-            $nameOverrideDefault ?: self::FormName,
+            $name,
             $fields,
             $actions,
             $validator

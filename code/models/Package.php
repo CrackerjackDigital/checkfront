@@ -33,16 +33,20 @@ class CheckfrontPackageModel extends CheckfrontModel {
     /**
      * Make a public link/token to this booking
      *
-     * @param $linkType
+     * @param $endPoint
      *
      * @return String
      */
-    public function PublicLink($linkType = CheckfrontModule::LinkTypePublic) {
+    public function PublicLink($endPoint = null) {
+        $endPoint = $endPoint ? $endPoint : Controller::curr()->getRequest()->getURL();
+
         return CheckfrontModule::make_link(
             null,
+            $endPoint,
             $this->ItemID,
-            null,
-            $linkType,
+            '',
+            '',
+            CheckfrontModule::LinkTypePublic,
             CheckfrontModule::UserTypeIndividual,
             CheckfrontModule::PaymentPayNow
         );

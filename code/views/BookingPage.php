@@ -7,4 +7,6 @@ class CheckfrontBookingPage extends Page {
 	private static $has_one = array(
 	);
 
+
+
 }

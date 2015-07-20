@@ -9,13 +9,6 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
     const IndividualStartDate = 'IndividualStartDate';
     const IndividualEndDate = 'IndividualEndDate';
 
-/* NOT USED
-    const OrganiserEventFieldName = 'OrganiserEvent';
-    const IndividualEventFieldName = 'IndividualEvent';
-
-    const PackageSelector = 'package-selector';
-    const PackageEventSelector = 'package-event-selector';
-*/
     private static $allowed_actions = array(
         'generate' => true
     );
@@ -108,36 +101,6 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
                 )
             );
         };
-        /* Add Javascript filtering, this is moved from makePackageSelectorField and not tested in new location
-        as not usefull without checkfront api being able to return both events and items at the same time for a package
-
-        if ($packages = $apiResponse->getPackages()) {
-            $jsArray = array();
-
-            foreach ($packages as $package) {
-                $packageResponse = CheckfrontModule::api()->fetchPackage($package->ItemID);
-                if ($packageResponse->isValid()) {
-                    $events = $packageResponse->getEvents();
-
-                    foreach ($events as $eventID => $eventInfo) {
-                        $jsArray[$package->ItemID][] = $eventInfo->toCheckfront('javascript');
-                    }
-                }
-            }
-            $json = str_replace(array("'", '"'), array("\\'", "'"), Convert::array2json($jsArray));
-
-            Requirements::javascript('framework/thirdparty/jquery/jquery.min.js');
-
-            Requirements::javascriptTemplate(
-                CheckfrontModule::module_path() . '/js/package-selector-field.js',
-                array(
-                    'PackageFieldSelector'      => self::PackageSelector,
-                    'PackageEventFieldSelector' => self::PackageEventSelector,
-                    'PackageEventMap'           => $json
-                )
-            );
-        }
-        */
 
         return new DisplayLogicWrapper(new CompositeField($fields));
     }
@@ -189,56 +152,15 @@ class CheckfrontLinkGeneratorForm extends CheckfrontForm {
         return $options;
     }
 
-    /**
-     * @param CheckfrontAPIPackagesResponse $apiResponse
-     * @param SS_HTTPRequest $request
-     * @param $name
-     *
-     * @return DropdownField
-     */
-/*  NOT USED until checkfront api can return both package events and items at the same time
-    protected function makePackageEventSelectorField(CheckfrontAPIPackagesResponse $apiResponse, SS_HTTPRequest $request, $name) {
-        $field = new DropdownField(
-            $name,
-            $this->getFieldLabel($name),
-            array(),                        // list will be populated from js on change of package
-            $request->postVar($name)
-        );
-        //  $field->addExtraClass(self::PackageEventSelector);
-        $field->setAttribute('placeholder', $this->getFieldLabel($name, 'FieldEmptyString'));
-        $field->setEmptyString($this->getFieldLabel($name, 'FieldEmptyString'));
-
-        return $field;
-    }
-*/
     protected function makeLinkTypeField($defaultEndpoint = self::DefaultEndpoint) {
-        $endpoints = CheckfrontModule::endpoints();
-
-        if (static::config()->get('allow_link_type_selection')) {
-            $field = new DropdownField(
-                self::LinkTypeFieldName,
-                $this->getFieldLabel(self::LinkTypeFieldName),
-                $endpoints
-            );
-        } else {
-            $field = new HiddenField(
-                self::LinkTypeFieldName,
-                $this->getFieldLabel(self::LinkTypeFieldName),
-                $endpoints[$defaultEndpoint]
-            );
-        }
-
+        $field = new HiddenField(
+            self::LinkTypeFieldName,
+            $this->getFieldLabel(self::LinkTypeFieldName),
+            'private'
+        );
         return $field;
     }
-/*
-    protected function makeUserTypeField() {
-        return new DropdownField(
-            self::UserTypeFieldName,
-            $this->getFieldLabel(self::UserTypeFieldName),
-            CheckfrontModule::user_types()
-        );
-    }
-*/
+
     protected function makePaymentTypeField() {
         return new DropdownField(
             self::PaymentTypeFieldName,

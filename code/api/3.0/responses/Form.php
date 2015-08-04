@@ -47,7 +47,7 @@ class CheckfrontAPIFormResponse extends CheckfrontAPIResponse {
     private function getCheckfrontFieldDefinitions() {
         return isset($this[self::FieldContainerKey])
             ? $this[self::FieldContainerKey]
-            : [];
+            : array();
     }
 
     /**
@@ -79,7 +79,7 @@ class CheckfrontAPIFormResponse extends CheckfrontAPIResponse {
             }
             $options = isset($definition['define']['layout']['options'])
                 ? $definition['define']['layout']['options']
-                : [];
+                : array();
 
             $value = isset($definition['value'])
                 ? $definition['value']
@@ -88,13 +88,13 @@ class CheckfrontAPIFormResponse extends CheckfrontAPIResponse {
             /** @var FormField $field */
             switch ($type) {
                 case 'select':
-                    $field = (new DropdownField($fieldName, $label, $options, $value))->addExtraClass('select-box');
+                    $field = DropdownField::create($fieldName, $label, $options, $value)->addExtraClass('select-box');
                     break;
                 case 'textarea':
                     $field = new TextareaField($fieldName, $label, $value);
                     break;
                 case 'text':
-                    $field = (new TextField($fieldName, $label, $value))->addExtraClass('input-text long-text');
+                    $field = TextField::create($fieldName, $label, $value)->addExtraClass('input-text long-text');
                     break;
             }
         }

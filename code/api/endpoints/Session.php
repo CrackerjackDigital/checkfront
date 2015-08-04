@@ -11,10 +11,12 @@ class CheckfrontAPISessionEndpoint extends CheckfrontAPIEndpoint {
 
         if ($sessionID = $session->getID()) {
             CheckfrontModule::api()->post(
-                "session/clear",
-                [
-                    'session_id' => $sessionID
-                ]
+                new CheckfrontAPIRequest(
+                    'session/clear',
+                    array(
+                        'session_id' => $sessionID
+                    )
+                )
             );
         }
         $session->clear('data');
@@ -29,12 +31,15 @@ class CheckfrontAPISessionEndpoint extends CheckfrontAPIEndpoint {
 
         if ($sessionID = $session->getID()) {
             CheckfrontModule::api()->post(
-                "session/end",
-                [
-                    'session_id' => $sessionID
-                ]
+                new CheckfrontAPIRequest(
+                    'session/end',
+                    array(
+                        'session_id' => $sessionID
+                    )
+                )
             );
         }
         $session->clear(null);
+
     }
 }

@@ -19,4 +19,7 @@ class CheckfrontAPIBookingResponse extends CheckfrontAPIResponse {
             return CheckfrontModule::lookup_path('request.error.details', $this->data, $found);
         }
     }
+    public function getPaymentURL() {
+        xdebug_break();
+    }
 }

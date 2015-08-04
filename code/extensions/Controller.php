@@ -24,4 +24,14 @@ class CheckfrontControllerExtension extends SiteTreeExtension {
         Requirements::javascript(THIRDPARTY_DIR . '/jquery/jquery.min.js');
     }
 
+    public function clearCheckfrontSession() {
+        $api = new CheckfrontAPISessionEndpoint();
+        $api->clearSession();
+    }
+
+    public function endCheckfrontSession() {
+        $api = new CheckfrontAPISessionEndpoint();
+        $api->endSession();
+    }
+
 }

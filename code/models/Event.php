@@ -7,7 +7,7 @@ class CheckfrontEventModel extends CheckfrontModel {
         'EndDate' => 'SS_DateTime'
     );
     private static $checkfront_map = array(
-        'response' => array(
+        self::DefaultFromAction => array(
             'item_id' => 'EventID',
             'name' => 'Title',
             'start_date' => 'StartDate',

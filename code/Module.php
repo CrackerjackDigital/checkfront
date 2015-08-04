@@ -22,6 +22,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
     const AuthenticatorServiceName = 'CheckfrontAuthenticator';
     const CryptoServiceName = 'CheckfrontCryptoService';
     const SessionServiceName = 'CheckfrontSession';
+    const SessionEndPointService = 'CheckfrontAPISessionEndpoint';
 
     const TokenItemCount = 6;
 

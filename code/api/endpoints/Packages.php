@@ -99,11 +99,17 @@ class CheckfrontAPIPackagesEndpoint extends CheckfrontAPIEndpoint {
      * @return CheckfrontAPIResponse
      */
     public function addPackageToSession(CheckfrontPackageModel $package, array $addOrUpdateParams = array()) {
+        $params = array_merge(
+            array(
+                'session_id' => CheckfrontModule::session()->getID()
+            ),
+            $package->toCheckfront('booking/session'),
+            $addOrUpdateParams
+        );
         $response = new CheckfrontAPIResponse($this()->post(
             new CheckfrontAPIRequest(
                 'booking/session',
-                $package,
-                $addOrUpdateParams
+                $params
             )
         ));
         return $response;

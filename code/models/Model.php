@@ -2,14 +2,12 @@
 
 class CheckfrontModel extends DataObject {
     const FormFieldTokenDelimeter = ',';
-    const DefaultAction = 'response';
+    const DefaultFromAction = 'response';
+    const DefaultToAction = '';
 
     const CastDate = 1;
 
     private static $db = array();
-
-    // cache the original creation data so we can later e.g. subquery it in models which don't persist to the DB.
-    protected $api_data = array();
 
     private static $casting = array(
         'start_date' => self::CastDate,
@@ -51,7 +49,7 @@ class CheckfrontModel extends DataObject {
      * @param bool $updateNulls
      * @return CheckfrontModel
      */
-    public static function create_from_checkfront(array $data, $forAction = self::DefaultAction, $updateNulls = true) {
+    public static function create_from_checkfront(array $data, $forAction = self::DefaultFromAction, $updateNulls = true) {
         /** @var CheckfrontModel $model */
 
         $model = parent::create();
@@ -65,47 +63,18 @@ class CheckfrontModel extends DataObject {
      * @param bool $updateNulls - if true and value not found then update model field to null.
      * @param string $forAction - key in the checkfront_map to use to lookup path/localName map
      * @return $this
+     * @throws CheckfrontException
      * @fluent
      */
-    public function fromCheckfront(array $data, $forAction = self::DefaultAction, $updateNulls = true) {
-        // cache the raw data so we can later re-query it if e.g we are not persisting relationships etc to a database
-        $this->api_data = $data;
-
-        if ($map = $this->checkfront_map($forAction)) {
-            $data = $this->cast($data);
-            CheckfrontModule::map_to_model($data, $map, $this, $updateNulls);
+    public function fromCheckfront(array $data, $forAction = self::DefaultFromAction, $updateNulls = true) {
+        if (!$map = $this->checkfront_map($forAction)) {
+            throw new CheckfrontException("No map for action '$forAction'");
         }
+        $data = $this->cast($data);
+        CheckfrontModule::map_to_model($data, $map, $this, $updateNulls);
         return $this;
     }
 
-    /**
-     * Iterates through config.casting and if key exist in data then applied casting rules.
-     *
-     * @param array $data
-     * @param array $casted - receives names of fields which where casted mapped to the casting types.
-     *
-     * @return array
-     * @throws Exception
-     */
-    protected function cast(array $data, array &$casted = array()) {
-        foreach ($this->config()->get('casting') as $name => $type) {
-
-            // casting may deal with null values so don't use isset()
-
-            if (array_key_exists($name, $data)) {
-
-                switch ($type) {
-                case self::CastDate:
-                    $data[$name] = CheckfrontModule::from_checkfront_date($data[$name]);
-                    $casted[$name][] = $type;
-                    break;
-                default:
-                    throw new CheckfrontException("Unknown cast type '$type'");
-                }
-            }
-        }
-        return $data;
-    }
 
     /**
      * Use the config.checkfront_map on the model instance to map from data object
@@ -114,11 +83,13 @@ class CheckfrontModel extends DataObject {
      * @param string $forAction
      * @param bool $skipNulls - don't put null values from this dataobject in output array.
      * @return null|array - might be empty.
+     * @throws CheckfrontException
      */
     public function toCheckfront($forAction, $skipNulls = true) {
-        if ($map = $this->checkfront_map($forAction)) {
-            return CheckfrontModule::model_to_map($this->toMap(), $map, $skipNulls);
+        if (!$map = $this->checkfront_map($forAction)) {
+            throw new CheckfrontException("No map for action '$forAction'");
         }
+        return CheckfrontModule::model_to_map($this->toMap(), $map, $skipNulls);
     }
 
     /**
@@ -150,4 +121,32 @@ class CheckfrontModel extends DataObject {
     }
 
 
+    /**
+     * Iterates through config.casting and if key exist in data then applied casting rules.
+     *
+     * @param array $data
+     * @param array $casted - receives names of fields which where casted mapped to the casting types.
+     *
+     * @return array
+     * @throws Exception
+     */
+    protected function cast(array $data, array &$casted = array()) {
+        foreach ($this->config()->get('casting') as $name => $type) {
+
+            // casting may deal with null values so don't use isset()
+
+            if (array_key_exists($name, $data)) {
+
+                switch ($type) {
+                case self::CastDate:
+                    $data[$name] = CheckfrontModule::from_checkfront_date($data[$name]);
+                    $casted[$name][] = $type;
+                    break;
+                default:
+                    throw new CheckfrontException("Unknown cast type '$type'");
+                }
+            }
+        }
+        return $data;
+    }
 }

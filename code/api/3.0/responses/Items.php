@@ -8,9 +8,9 @@ class CheckfrontAPIItemsResponse extends CheckfrontAPIResponse {
         return new ArrayList(
             array_map(
                 function($item) {
-                    return CheckfrontItemModel::create_from_checkfront($item, 'response');
+                    return CheckfrontItemModel::create_from_checkfront($item);
                 },
-                isset($this['items']) ? $this['items'] : []
+                isset($this['items']) ? $this['items'] : array()
             )
         );
     }

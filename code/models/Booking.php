@@ -25,14 +25,14 @@ class CheckfrontBookingModel extends CheckfrontModel {
             'customer_postal_zip' => 'PostalZip'
         ),
         'booking/create' => array(
-            'Name' => "customer_name",
-            'Email' => "customer_email",
-            'Phone' => "customer_phone",
-            'Address' => "customer_address",
-            'City' => "customer_city",
-            'Country' => "customer_country",
-            'Region' => "customer_region",
-            'PostalZip' => "customer_zip"
+            'Name' => "form[customer_name]",
+            'Email' => "form[customer_email]",
+            'Phone' => "form[customer_phone]",
+            'Address' => "form[customer_address]",
+            'City' => "form[customer_city]",
+            'Country' => "form[customer_country]",
+            'Region' => "form[customer_region]",
+            'PostalZip' => "form[customer_zip]"
         )
     );
 }

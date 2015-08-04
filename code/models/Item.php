@@ -14,7 +14,7 @@ class CheckfrontItemModel extends CheckfrontModel {
         'RateSummaryDetails' => 'Text'
     );
     private static $checkfront_map = array(
-        'response' => array(
+        self::DefaultFromAction => array(
             'item_id' => 'ItemID',
             'sku' => 'SKU',
             'name' => 'Title',
@@ -27,6 +27,9 @@ class CheckfrontItemModel extends CheckfrontModel {
             'rate.summary.title' => 'RateSummaryTitle',
             'rate.summary.details' => 'RateSummaryDetails',
             'rate.summary.date' => 'RateSummaryDate',
+        ),
+        'booking/session' => array(
+            'RateSlip' => 'slip'
         )
     );
 
@@ -36,10 +39,10 @@ class CheckfrontItemModel extends CheckfrontModel {
      */
     public function fieldsForForm() {
 
-        $fieldList = new FieldList([
+        $fieldList = new FieldList(array(
             new HiddenField('ItemID[' . $this->ItemID . ']', '', $this->ItemID),
             new HiddenField('Unit[' . $this->ItemID . ']', '', $this->Unit)
-        ]);
+        ));
 
         $numAvailable = $this->Available;
         // unlimited so give text box

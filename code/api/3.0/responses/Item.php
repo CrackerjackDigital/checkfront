@@ -1,11 +1,16 @@
 <?php
 
 class CheckfrontAPIItemResponse extends CheckfrontAPIResponse {
+    const SimpleMatchKey = 'item';
     /**
      * @return CheckfrontItemModel
      */
-    public function getData() {
-        return new CheckfrontItemModel($this[static::SimpleMatchKey]);
+    public function getItem() {
+        if ($this->isValid()) {
+            $item = new CheckfrontItemModel();
+            $item->fromCheckfront($this->data[static::SimpleMatchKey]);
+            return $item;
+        }
     }
 
     /**

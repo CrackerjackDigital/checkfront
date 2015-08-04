@@ -71,7 +71,7 @@ class CheckfrontLinkGeneratorController extends ContentController {
         $packageResponse = CheckfrontModule::api()->fetchPackage($packageID);
 
         if (!$package = $packageResponse->getPackage()) {
-            throw new CheckfrontException(_t('Package.NoSuchPackageMessage', "Package {id}not found", array('id' => $packageID)));
+            throw new CheckfrontException(_t('Package.NoSuchPackageMessage', "Package {id}not found", array('id' => $packageID)), CheckfrontException::TypeError);
         }
 /*
         if (!$organiserEvent = $packageResponse->getEvent($postVars[CheckfrontLinkGeneratorForm::OrganiserEventFieldName])) {

@@ -290,7 +290,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
      */
     public static function package_category_id() {
         if (!$id = static::config()->get('package_category_id')) {
-            throw new CheckfrontException("No package category id");
+            throw new CheckfrontException("No package category id", CheckfrontException::TypeError);
         }
 
         return $id;
@@ -463,7 +463,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
                 // $dateOrYear is year, and month and day supplied
                 $result = date($checkfrontFormat, mktime(0, 0, 0, $month, $day, $dateOrYear));
             } else {
-                throw new CheckfrontException("Need either 1 or 3 arguments when dataOrYear is an integer");
+                throw new CheckfrontException("Need either 1 or 3 arguments when dataOrYear is an integer", CheckfrontException::TypeError);
             }
 
         } elseif (3 === explode($dateOrYear, '-')) {
@@ -471,7 +471,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
             // probably formatted as YYYY-MM-DD
             $result = str_replace(array('-', '_'), '', $dateOrYear);
             if (!is_numeric($result)) {
-                throw new CheckfrontException("Invalid date passed: '$dateOrYear'");
+                throw new CheckfrontException("Invalid date passed: '$dateOrYear'", CheckfrontException::TypeError);
             }
 
         } else {
@@ -479,7 +479,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
             // this may be something that strtotime can use e.g. 'today' or '+2 month'?
             $unixTime = strtotime($dateOrYear);
             if ($unixTime === false) {
-                throw new CheckfrontException("Invalid date passed: '$dateOrYear'");
+                throw new CheckfrontException("Invalid date passed: '$dateOrYear'", CheckfrontException::TypeError);
             }
             $result = date($checkfrontFormat, $unixTime);
 
@@ -511,7 +511,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
 
                     $value = date('Y-m-d', mktime(0, 0, 0, (int)$month, (int)$day, (int)$year));
                 } else {
-                    throw new CheckfrontException("Invalid date passed: '" . implode(',', $valueOrArray) . "'");
+                    throw new CheckfrontException("Invalid date passed: '" . implode(',', $valueOrArray) . "'", CheckfrontException::TypeError);
                 }
             } elseif (is_numeric($valueOrArray)) {
                 $year  = substr($valueOrArray, 0, 4);
@@ -520,7 +520,7 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
 
                 $value = date('Y-m-d', mktime(0, 0, 0, (int)$month, (int)$day, (int)$year));
             } else {
-                throw new CheckfrontException("Invalid date passed: '$valueOrArray'");
+                throw new CheckfrontException("Invalid date passed: '$valueOrArray'", CheckfrontException::TypeError);
             }
         } else {
             // no date is OK, just return default null date

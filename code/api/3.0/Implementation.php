@@ -13,10 +13,10 @@ class CheckfrontAPIImplementation extends Checkfront implements CheckfrontAPIInt
      */
     public function __construct(array $config = array(), $sessionID = '') {
         if (static::SDKVersion !== $this->sdk_version) {
-            throw new CheckfrontException("Bad SDK Version $this->sdk_version");
+            throw new CheckfrontException("Bad SDK Version $this->sdk_version", CheckfrontException::TypeError);
         }
         if (static::APIVersion !== $this->api_version) {
-            throw new CheckfrontException("Bad API Version $this->api_version");
+            throw new CheckfrontException("Bad API Version $this->api_version", CheckfrontException::TypeError);
         }
         parent::__construct($config, $sessionID);
     }

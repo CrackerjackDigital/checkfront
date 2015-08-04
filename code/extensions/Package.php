@@ -10,6 +10,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     const TemplateName      = 'CheckfrontBookingPage';
     const FormName          = 'CheckfrontForm';
     const MessageKey        = 'Message';
+    const MessageTypeKey        = 'MessageType';
     const PackageSessionKey = 'package';
     const PackageIDKey      = 'package-id';
     const FormSessionKey    = 'form';
@@ -34,7 +35,6 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         )
     );
 
-
     public function PackageList() {
         $packageList = $this->api()->listPackages()->getPackages();
         return $packageList;
@@ -51,6 +51,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
     public function package(SS_HTTPRequest $request) {
         $result = array();
         $message = '';
+        $messageType = '';
         $isPublic = $this->owner->checkfrontPublicPage();
 
         try {
@@ -69,7 +70,9 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                         $result = $this->book($request);
                     }
                 } else {
+
                     if ($isPublic) {
+
                         // no access key required
                         if ($request->param(self::TokenParam)) {
                             // url has a token so show the booking form
@@ -95,7 +98,8 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         }
         $result = array_merge(
             array(
-                'Message' => $message,
+                self::MessageKey => $message,
+                self::MessageTypeKey => $messageType
             ),
             $result
         );
@@ -112,120 +116,156 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      */
     protected function buildBookingForm(SS_HTTPRequest $request) {
         $message = '';
+        $messageTypeKey = '';
+
         $result = array();
 
         try {
 
-            // access key posted by AccessKeyForm is from cryptofier.generate_key via the original link generator
-            $accessKey = $request->postVar(CheckfrontAccessKeyForm::AccessKeyFieldName);
-
-            if (!$this->owner->checkfrontPublicPage()) {
-                try {
-                    // check entered key is a valid Crypto key first, should throw exception if not
-                    CheckfrontModule::crypto()->encrypt('somethingrandomheredontcarewhat', $accessKey);
-
-                    list($packageID, $startDate, $endDate, $linkType, $userType, $paymentType) = $this->getTokenInfo(null, $accessKey);
-
-                } catch (CryptofierException $e) {
-                    throw new CheckfrontException("Invalid access token");
-                }
-            } else {
-                list($packageID, $startDate, $endDate, $linkType, $userType, $paymentType) = $this->getTokenInfo();
-            }
+            list($packageID, $startDate, $endDate) = $this->getTokenInfo(
+                null,
+                $request->postVar(CheckfrontAccessKeyForm::AccessKeyFieldName)
+            );
 
             if (is_numeric($packageID)) {
                 /** @var CheckfrontAPIPackageResponse $packageResponse */
-                if ($packageResponse = $this->api()->fetchPackage($packageID)) {
-
+                if ($packageResponse = $this->api()->fetchPackage($packageID, $startDate, $endDate)) {
                     if ($packageResponse->isValid()) {
-                        // re-query with start and end date
-                        if ($packageResponse = $this->api()->fetchPackage($packageID, $startDate, $endDate)) {
+                        // maybe mode down, we can still show a booking form even without items?
+                        /** @var Form $form */
+                        $form = CheckfrontPackageBookingForm::factory($this(), $packageResponse, $this->getTokenInfo(), $request->postVars());
 
-                            if ($packageResponse->isValid()) {
-                                $package = $packageResponse->getPackage();
+                        $form->setFormAction('/' . $this->owner->getRequest()->getURL());
 
-                                // now build the form
-                                $fields = new FieldList();
-
-                                // add a hidden accessKey field
-                                $fields->push(new HiddenField(CheckfrontForm::AccessKeyFieldName, '', $accessKey));
-
-                                // if not organiser then add visible start and end date fields for the actual booking
-                                if ($userType !== CheckfrontModule::UserTypeOrganiser) {
-                                    $fields->merge(array(
-                                            CheckfrontForm::make_date_field(
-                                                CheckfrontForm::StartDateFieldName,
-                                                'Start Date',
-                                                $startDate,
-                                                CheckfrontModule::NullDate
-                                            ),
-                                            CheckfrontForm::make_date_field(
-                                                CheckfrontForm::EndDateFieldName,
-                                                'End Date',
-                                                CheckfrontModule::NullDate,
-                                                $endDate
-                                            )
-                                        )
-                                    );
-                                } else {
-                                    $fields->merge(array(
-                                        new HiddenField(CheckfrontForm::StartDateFieldName, '', $startDate),
-                                        new HiddenField(CheckfrontForm::EndDateFieldName, '', $endDate)
-                                    ));
-                                }
-
-                                // add the package items to the field list which will make the form as fields
-                                /** @var CheckfrontModel $item */
-                                foreach ($packageResponse->getPackageItems() as $item) {
-                                    if ($this->shouldShowItem($item, $userType, $linkType)) {
-                                        $fields->merge($item->fieldsForForm('form'));
-                                    }
-                                }
-
-                                $fields->merge(
-                                    new FieldList(array(
-                                            new HiddenField(CheckfrontAccessKeyForm::AccessKeyFieldName, '', $accessKey)
-                                        )
-                                    )
-                                );
-
-                                // maybe mode down, we can still show a booking form even without items?
-                                /** @var Form $form */
-                                $form = new CheckfrontPackageBookingForm(
-                                    $this->owner,
-                                    self::FormName,
-                                    $fields,
-                                    new FieldList()
-                                );
-                                $form->setFormAction('/' . $this->owner->getRequest()->getURL());
-
-                                // TODO: make sure there's nothing nasty we're loading here
-                                $form->loadDataFrom($request->postVars());
-
-                                $result = array(
-                                    self::FormName => $form,
-                                    'CurrentPackage' => $package
-                                );
-                            }
-                        }
+                        $result = array(
+                            self::FormName => $form,
+                            'CurrentPackage' => $packageResponse->getPackage()
+                        );
                     } else {
-                        throw new CheckfrontException( _t("Package.NoSuchPackageMessage", "Sorry, the package is no longer available"));
+                        throw new CheckfrontException( _t("Package.NoSuchPackageMessage", "Sorry, the package is no longer available"), CheckfrontException::TypeError);
                     }
                 }
+            } else {
+                throw new CheckfrontException("Bad package ID '$packageID'", CheckfrontException::TypeError);
             }
         } catch (CheckfrontException $e) {
+
             $message = $e->getMessage();
+            $messageTypeKey = $e->getType();
         }
 
         return array_merge(
             $result,
             array(
-                self::MessageKey => $message
+                self::MessageKey => $message,
+                self::MessageTypeKey => $messageTypeKey
             )
         );
     }
 
     /**
+     * -    setup session in checkfront
+     * -    add package to session
+     * -    add items to session
+     * -    call the 'book' endpoint to make the booking
+     *
+     * @param SS_HTTPRequest $request
+     *
+     * @return CheckfrontForm
+     */
+    protected function book(SS_HTTPRequest $request) {
+        $message = '';
+        $messageType = '';
+
+        $result = array();
+
+        // only post request should route here
+        $postVars = $request->postVars();
+
+        try {
+            $this->clearCheckfrontSession();
+
+            $packageID = $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex, $postVars[CheckfrontForm::AccessKeyFieldName]);
+
+            if ($request->isPOST()) {
+
+                $startDate = $request->postVar('StartDate');
+                $endDate   = $request->postVar('EndDate');
+
+                $ratedPackageResponse = $this->api()->fetchPackage(
+                    $packageID,
+                    $startDate,
+                    $endDate
+                );
+                if ($ratedPackageResponse->isValid()) {
+                    $package = $ratedPackageResponse->getPackage();
+
+                    $this->api()->addPackageToSession($package);
+
+                    foreach ($postVars['ItemID'] as $index => $itemID) {
+                        if (isset($postVars['Quantity'][$index])) {
+                            if ($quantity = $postVars['Quantity'][$index]) {
+                                /**
+                                 * CheckfrontAPIItemResponse
+                                 */
+                                $response = $this->api()->fetchItem($itemID, $quantity, $startDate, $endDate);
+
+                                if ($response->isValid()) {
+                                    if ($item = $response->getItem()) {
+                                        $this->api()->addItemToSession($item);
+                                    }
+                                } else {
+                                    throw new CheckfrontBookingException($response->getMessage());
+                                }
+                            }
+                        }
+                    }
+                    $booking = CheckfrontBookingModel::create_from_checkfront($postVars, 'from-form');
+
+                    $bookingResponse = $this->api()->makeBooking($booking);
+
+                    if ($bookingResponse->isValid()) {
+                        $paymentMethod = $this->getTokenInfo(CheckfrontModule::TokenPaymentTypeIndex, $postVars[CheckfrontForm::AccessKeyFieldName]);
+
+                        if ($paymentMethod == CheckfrontModule::PaymentPayNow) {
+                            if ($paymentURL = $bookingResponse->getPaymentURL()) {
+                                return $this()->redirect($paymentURL);
+
+                            }
+                        }
+                        $message = 'Thanks for booking, you will receive email confirmation shortly';
+                        $messageType = CheckfrontException::TypeOK;
+
+                    } else {
+
+                        throw new CheckfrontBookingException($bookingResponse->getMessage());
+
+                    }
+                }
+            }
+
+
+        } catch (CheckfrontException $e) {
+            $message = $e->getMessage();
+            $messageType = $e->getType();
+
+            $this->api()->clearSession();
+
+            Session::setFormMessage(CheckfrontPackageBookingForm::FormName, $message, 'bad');
+
+            $result = $this->buildBookingForm($request);
+
+        }
+        return array_merge(
+            array(
+                self::MessageKey => $message,
+                self::MessageTypeKey => $messageType
+            ),
+            $result
+        );
+
+    }
+
     /**
      * Returns a simple form where user can enter the access key they have been provided.
      * Form will post back to the request url.
@@ -249,97 +289,6 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
             self::FormName => $form
         );
     }
-
-
-    /**
-     * -    setup session in checkfront
-     * -    add package to session
-     * -    add items to session
-     * -    call the 'book' endpoint to make the booking
-     *
-     * @param SS_HTTPRequest $request
-     *
-     * @return CheckfrontForm
-     */
-    protected function book(SS_HTTPRequest $request, array $templateData = array()) {
-        $result = array();
-
-        // only post request should route here
-        $postVars = $request->postVars();
-
-        // initiall call should also
-        $packageID = $this->getTokenInfo(CheckfrontModule::TokenItemIDIndex, $postVars[CheckfrontForm::AccessKeyFieldName]);
-
-        if ($request->isPOST()) {
-
-            $startDate = $request->postVar('StartDate');
-            $endDate   = $request->postVar('EndDate');
-
-            $ratedPackageResponse = $this->api()->fetchPackage(
-                $packageID,
-                $startDate,
-                $endDate
-            );
-            if ($ratedPackageResponse->isValid()) {
-                $package = $ratedPackageResponse->getPackage();
-
-                $this->api()->addPackageToSession($package);
-
-                foreach ($postVars['ItemID'] as $index => $itemID) {
-
-                    if (isset($postVars['Quantity'][$index])) {
-
-                        if ($postVars['Quantity'][$index]) {
-
-                            // now get rated item
-                            $response = $this->api()->fetchItem($itemID, $startDate, $endDate);
-
-                            if ($response->isValid()) {
-
-                                $item = CheckfrontItemModel::create()->fromCheckfront(
-                                    $response->getItem()
-                                );
-
-                                $this->api()->addItemToSession($item);
-
-                            }
-                        }
-                    }
-                }
-                $booking = CheckfrontBookingModel::create()->fromCheckfront($postVars, 'from-form');
-
-                $bookingResponse = $this->api()->makeBooking($booking);
-                if ($bookingResponse->isValid()) {
-                    $paymentMethod = $this->getTokenInfo(CheckfrontModule::TokenPaymentTypeIndex);
-
-                    if ($paymentMethod == CheckfrontModule::PaymentPayNow) {
-
-                    }
-                } else {
-
-                    Session::setFormMessage(self::FormName, 'No way hose', 'bad');
-
-                    $result = array_merge(
-                        array(
-                            self::FormName => $this->buildBookingForm($request)
-                        ),
-                        array(
-                            self::MessageKey => $bookingResponse->getMessage()
-                        )
-                    );
-                }
-            }
-        }
-
-        return array_merge(
-            array(
-                self::MessageKey => 'Thanks for booking, you will receive email confirmation shortly'
-            ),
-            $result,
-            $templateData
-        );
-    }
-
     /**
      *
      * Check if the current URL maps to a page on the site, in which case is 'Public' otherwise is private
@@ -380,33 +329,23 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      * @return array|null
      */
     public function getTokenInfo($which = null, $accessKey = null) {
-        if (!$detokenised = CheckfrontModule::session()->getToken()) {
-            $request = $this->owner->getRequest();
+        $request = $this->owner->getRequest();
 
-            if ($token = $request->param(self::TokenParam)) {
+        if ($token = $request->param(self::TokenParam)) {
 
-                $detokenised = CheckfrontModule::decrypt_token($accessKey, $token);
+            $detokenised = CheckfrontModule::decrypt_token($accessKey, $token);
 
-                // cache the token for retrieval later
-                CheckfrontModule::session()->setToken(
-                    $detokenised
-                );
-
-            } else {
-                throw new CheckfrontException("No token");
-            }
-        };
-
-        if ($detokenised) {
             if (!is_null($which)) {
                 if (!array_key_exists($which, $detokenised)) {
                     return null;
                 }
                 return $detokenised[$which];
             }
-        }
+            return $detokenised;
 
-        return $detokenised;
+        } else {
+            throw new CheckfrontException("No token", CheckfrontException::TypeError);
+        }
     }
 
 
@@ -424,7 +363,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
      *
      * @return bool
      */
-    private function shouldShowItem($item, $userType, $linkType) {
+    public function shouldShowItem($item, $userType, $linkType) {
         $userTypes = self::get_config_setting('exclude_user_type_items');
 
         // exclude by item category

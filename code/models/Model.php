@@ -87,7 +87,7 @@ class CheckfrontModel extends DataObject {
      */
     public function toCheckfront($forAction, $skipNulls = true) {
         if (!$map = $this->checkfront_map($forAction)) {
-            throw new CheckfrontException("No map for action '$forAction'");
+            throw new CheckfrontException("No map for action '$forAction'", CheckfrontException::TypeError);
         }
         return CheckfrontModule::model_to_map($this->toMap(), $map, $skipNulls);
     }
@@ -143,7 +143,7 @@ class CheckfrontModel extends DataObject {
                     $casted[$name][] = $type;
                     break;
                 default:
-                    throw new CheckfrontException("Unknown cast type '$type'");
+                    throw new CheckfrontException("Unknown cast type '$type'", CheckfrontException::TypeError);
                 }
             }
         }

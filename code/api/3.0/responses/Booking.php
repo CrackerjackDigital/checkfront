@@ -21,5 +21,6 @@ class CheckfrontAPIBookingResponse extends CheckfrontAPIResponse {
     }
     public function getPaymentURL() {
         xdebug_break();
+        return $this->data['request']['data']['url'];
     }
 }

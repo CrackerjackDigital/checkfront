@@ -4,14 +4,15 @@ class CheckfrontPackageBookingForm extends CheckfrontForm {
     const SubmitButtonName = 'book';
 
 
-    public static function factory(CheckfrontAPIPackageResponse $packageResponse, array $info, array $data) {
+    public static function factory($controller, CheckfrontAPIPackageResponse $packageResponse, array $info, array $data) {
         list($packageID, $startDate, $endDate, $linkType, $userType, $paymentType) = $info;
 
             // now build the form
         $fields = new FieldList();
 
-        // add a hidden accessKey field
-        $fields->push(new HiddenField(CheckfrontForm::AccessKeyFieldName, '', $data[CheckfrontForm::AccessKeyFieldName]));
+        // add a hidden accessKey field if set
+        $accessKey = isset($data[CheckfrontForm::AccessKeyFieldName]) ? $data[CheckfrontForm::AccessKeyFieldName] : null;
+        $fields->push(new HiddenField(CheckfrontForm::AccessKeyFieldName, '', $accessKey));
 
         if ($userType === CheckfrontModule::UserTypeOrganiser) {
             // if organiser then add hidden start and end date fields for the actual booking
@@ -42,7 +43,7 @@ class CheckfrontPackageBookingForm extends CheckfrontForm {
         // add the package items to the field list which will make the form as fields
         /** @var CheckfrontModel $item */
         foreach ($packageResponse->getPackageItems() as $item) {
-            if ($this->shouldShowItem($item, $userType, $linkType)) {
+            if ($controller->shouldShowItem($item, $userType, $linkType)) {
                 $fields->merge($item->fieldsForForm('form'));
             }
         }
@@ -54,24 +55,7 @@ class CheckfrontPackageBookingForm extends CheckfrontForm {
             )
         );
 
-
-    }
-
-    /**
-     * Creates form with:
-     *
-     *  -   Checkfront booking form fields from call to api.fetchBookingForm
-     *  -   A 'book' action
-     *
-     * @param Controller $controller
-     * @param string $name
-     * @param FieldList $fields
-     * @param FieldList $actions
-     * @param null $validator
-     */
-    public function __construct($controller, $name, $fields, $actions, $validator = null) {
-        $fields = $fields ?: new FieldList();
-        $actions = $actions ?: new FieldList();
+        $actions = new FieldList();
 
         $required = array();
 
@@ -92,6 +76,30 @@ class CheckfrontPackageBookingForm extends CheckfrontForm {
         }
         $validator = new RequiredFields($required);
 
+        $form = new CheckfrontPackageBookingForm(
+            $controller,
+            static::FormName,
+            $fields,
+            $actions,
+            $validator
+        );
+
+        return $form;
+    }
+
+    /**
+     * Creates form with:
+     *
+     *  -   Checkfront booking form fields from call to api.fetchBookingForm
+     *  -   A 'book' action
+     *
+     * @param Controller $controller
+     * @param string $name
+     * @param FieldList $fields
+     * @param FieldList $actions
+     * @param null $validator
+     */
+    public function __construct($controller, $name, $fields, $actions, $validator = null) {
         parent::__construct(
             $controller,
             $name,

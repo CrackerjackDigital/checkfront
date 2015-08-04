@@ -4,6 +4,8 @@
  * Base class or instance for forms used in checkfront module.
  */
 class CheckfrontForm extends Form {
+    const FormName = 'CheckfrontForm';
+
     const PackageIDFieldName = 'PackageID';
     const StartDateFieldName = 'StartDate';
     const EndDateFieldName = 'EndDate';

@@ -119,7 +119,7 @@ class CheckfrontAPIResponse extends Object
     public function offsetGet($offset)
     {
         if (!$this->offsetExists($offset)) {
-            throw new CheckfrontException("Invalid key '$offset'");
+            throw new CheckfrontException("Invalid key '$offset'", CheckfrontException::TypeError);
         }
         return $this->data[$offset];
     }

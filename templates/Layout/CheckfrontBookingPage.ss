@@ -1,17 +1,20 @@
-<%-- vanilla booking page which shows form --%>
 <div class="checkfront-booking-page">
+	<div class="message">$Message</div>
+
 	<% if $CurrentPackage %>
 		<h1>Booking $CurrentPackage.Title</h1>
 
-		<div class="message">$Message</div>
-
 		<% include $CheckfrontForm %>
 
-	<% else %>
+	<% else_if $PackageList %>
 
 		<h1><%t CheckfrontBookingPage.Title 'Please choose a package' %></h1>
 
 		<% include CheckfrontPackageList %>
+
+	<% else %>
+
+		<div class="message">$Message</div>
 
 	<% end_if %>
 </div>

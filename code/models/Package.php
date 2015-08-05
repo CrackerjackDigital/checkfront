@@ -11,7 +11,8 @@ class CheckfrontPackageModel extends CheckfrontModel {
         'RateSlip' => 'CheckfrontSlip',
         'RateStatus' => 'Varchar(32)',
         'StartDate' => 'SS_DateTime',
-        'EndDate' => 'SS_DateTime'
+        'EndDate' => 'SS_DateTime',
+        'ImageSRC' => 'Varchar(255)'
     );
     private static $checkfront_map = array(
         self::DefaultFromAction => array(
@@ -23,12 +24,24 @@ class CheckfrontPackageModel extends CheckfrontModel {
             'unit' => 'Unit',
             'rate.summary.title' => 'RateSummaryTitle',
             'rate.slip' => 'RateSlip',
-            'rate.status' => 'RateStatus'
+            'rate.status' => 'RateStatus',
+            'image.1.src' => 'ImageSRC'
         ),
         'booking/session' => array(
             'RateSlip' => 'slip'
         )
     );
+
+    public function Image() {
+        if ($this->ImageSRC) {
+            return Controller::join_links(
+                'http://',
+                CheckfrontAPIConfig::host(),
+                'media',
+                $this->ImageSRC . '.jpg'
+            );
+        }
+    }
 
     /**
      * Make a public link/token to this booking

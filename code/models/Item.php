@@ -11,7 +11,8 @@ class CheckfrontItemModel extends CheckfrontModel {
         'Available' => 'Int',
         'RateSlip' => 'CheckfrontSlip',
         'RateSummaryTitle' => 'Varchar(32)',
-        'RateSummaryDetails' => 'Text'
+        'RateSummaryDetails' => 'Text',
+        'ImageSRC' => 'Varchar(64)'
     );
     private static $checkfront_map = array(
         self::DefaultFromAction => array(
@@ -27,6 +28,7 @@ class CheckfrontItemModel extends CheckfrontModel {
             'rate.summary.title' => 'RateSummaryTitle',
             'rate.summary.details' => 'RateSummaryDetails',
             'rate.summary.date' => 'RateSummaryDate',
+            'image.1.src' => 'ImageSRC'
         ),
         'booking/session' => array(
             'RateSlip' => 'slip'

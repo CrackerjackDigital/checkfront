@@ -385,9 +385,17 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
         }
         $pathLength = count($path);
         $parsed     = 0;
+        $lastPart   = array();
 
         while ($part = array_shift($path)) {
-            if (isset($data[$part])) {
+
+            if (is_numeric($part)) {
+                if (isset($lastPart[$part])) {
+                    $data = $lastPart[$part];
+                }
+                $parsed++;
+            } elseif (isset($data[$part])) {
+                $lastPart = $data[$part];
                 $data = $data[$part];
                 $parsed++;
             } else {

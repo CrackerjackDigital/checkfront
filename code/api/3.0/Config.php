@@ -32,4 +32,8 @@ class CheckfrontAPIConfig extends Object implements CheckfrontAPIConfigInterface
         );
         return $result;
     }
+
+    public static function host() {
+        return static::config()->get('host');
+    }
 }

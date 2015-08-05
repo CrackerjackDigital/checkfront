@@ -96,13 +96,15 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
         } catch (Exception $e) {
             $message = $e->getMessage();
         }
-        $result = array_merge(
+        $result = new ArrayData(array_merge(
             array(
                 self::MessageKey => $message,
                 self::MessageTypeKey => $messageType
             ),
-            $result
-        );
+            $result ?: array()
+        ));
+        return $result->renderWith(array(self::TemplateName, 'Page'));
+
         return $this->owner->customise($result)->renderWith(array(self::TemplateName, 'Page'));
     }
 
@@ -144,14 +146,17 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
                     } else {
                         throw new CheckfrontException( _t("Package.NoSuchPackageMessage", "Sorry, the package is no longer available"), CheckfrontException::TypeError);
                     }
+                } else {
+                    throw new CheckfrontException("Failed to fetch package", CheckfrontException::TypeError);
                 }
             } else {
                 throw new CheckfrontException("Bad package ID '$packageID'", CheckfrontException::TypeError);
             }
         } catch (CheckfrontException $e) {
-
             $message = $e->getMessage();
             $messageTypeKey = $e->getType();
+
+            Session::setFormMessage(CheckfrontPackageBookingForm::FormName, $message, 'bad');
         }
 
         return array_merge(
@@ -229,7 +234,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
                         if ($paymentMethod == CheckfrontModule::PaymentPayNow) {
                             if ($paymentURL = $bookingResponse->getPaymentURL()) {
-                                return $this()->redirect($paymentURL);
+                                $this()->redirect($paymentURL);
 
                             }
                         }

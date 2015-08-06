@@ -3,7 +3,13 @@
 class CheckfrontAPIBookingResponse extends CheckfrontAPIResponse {
 
     public function getBooking() {
+        return CheckfrontBookingModel::create_from_checkfront($this->data, 'response');
+    }
 
+    public function getItems() {
+        if (isset($this->data['booking']['items'])) {
+            return new CheckfrontItemIterator($this->data['booking']['items']);
+        }
     }
     /**
      * Return the number of items returned (maybe one for a single model) or 0 if none.
@@ -16,7 +22,7 @@ class CheckfrontAPIBookingResponse extends CheckfrontAPIResponse {
     }
     public function getMessage() {
         if ($this->isError()) {
-            return CheckfrontModule::lookup_path('request.error.details', $this->data, $found);
+            return $this->path('request.error.details', $found);
         }
     }
     public function getPaymentURL() {

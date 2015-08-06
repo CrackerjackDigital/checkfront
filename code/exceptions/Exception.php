@@ -10,7 +10,7 @@ class CheckfrontException extends Exception {
 
     private $type = '';
 
-    public function __construct($message, $type, $code = null, $previous = null) {
+    public function __construct($message, $type = self::TypeError, $code = null, $previous = null) {
         $this->type = $type;
         parent::__construct($message, $code, $previous);
     }

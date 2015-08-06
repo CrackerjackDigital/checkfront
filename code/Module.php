@@ -395,7 +395,9 @@ class CheckfrontModule extends Object implements CheckfrontAPIInterface {
                 }
                 $parsed++;
             } elseif (isset($data[$part])) {
+                // save this incase next 'part' is a numeric array index
                 $lastPart = $data[$part];
+
                 $data = $data[$part];
                 $parsed++;
             } else {

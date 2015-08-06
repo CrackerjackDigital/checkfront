@@ -22,6 +22,17 @@ class CheckfrontAPIResponse extends Object
     }
 
     /**
+     * Find an item in data by a path e.g. 'request.status' or 'item.images.1.src'
+     * @param $path
+     * @param bool|false $found
+     *
+     * @return array
+     */
+    public function path($path, &$found = false) {
+        return CheckfrontModule::lookup_path($path, $this->data, $found);
+    }
+
+    /**
      * Return a status message, e.g. 'ok' or error text.
      * @return string|null
      */

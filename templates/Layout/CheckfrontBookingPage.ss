@@ -1,18 +1,26 @@
 <div class="checkfront-booking-page">
 	<div class="message">$Message</div>
 
-	<% if $CurrentPackage %>
-		<h1>Booking $CurrentPackage.Title</h1>
+	<% if $Booking %>
+		<h1>Booking Details</h1>
 
-		<div>$CurrentPackage.Summary</div>
+	<% with $CurrentPackage %>
+		<h1>Booking $Title</h1>
 
-		<% if $CurrentPackage.Image %>
-			<img src="$CurrentPackage.Image" alt=""/>
+		<div>$Summary</div>
+
+		<% if $Image %>
+			<img src="$Image" alt=""/>
 		<% end_if %>
+	<% end_with %>
+
+	<% if CheckfrontForm %>
 
 		<% include $CheckfrontForm %>
 
-	<% else_if $PackageList %>
+	<% end_if %>
+
+	<% if $PackageList %>
 
 		<h1><%t CheckfrontBookingPage.Title 'Please choose a package' %></h1>
 

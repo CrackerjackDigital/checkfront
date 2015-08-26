@@ -21,7 +21,8 @@
         "silverstripe/framework": "3.1.*",
         "silverstripe/cms": "3.1.*",
         "ivaynberg/select2": "4.*",
-        "checkfront/checkfront": "3.0"
+        "checkfront/checkfront": "3.0",
+        "crackerjackdigital/silverstripe-cryptofier": "1.0"
     },
     "extra": {
         "installer-name": "checkfront"

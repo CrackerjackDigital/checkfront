@@ -26,14 +26,7 @@ class CheckfrontPackageControllerExtension extends CheckfrontControllerExtension
 
     private static $form_name = self::FormName;
 
-    private static $exclude_user_type_items = array(
-        'individual' => array(
-            'categories' => array(
-                'Equipment' => 2,
-                'Venue'     => 3
-            )
-        )
-    );
+    private static $exclude_user_type_items = array();
 
     /**
      * Figures out if we are GET or POST and with posted info determines if we need
